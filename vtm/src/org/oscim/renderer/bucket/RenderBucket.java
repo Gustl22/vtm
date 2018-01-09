@@ -45,6 +45,10 @@ public abstract class RenderBucket extends Inlist<RenderBucket> {
      * Number of vertices for this layer.
      */
     protected int numVertices;
+
+    /**
+     * Number of indices for this layer.
+     */
     protected int numIndices;
 
     /**
@@ -114,6 +118,12 @@ public abstract class RenderBucket extends Inlist<RenderBucket> {
 
     protected int indiceOffset;
 
+    /**
+     * TODO: Need description here
+     *
+     * @param vboData vertices data
+     * @param iboData indices data
+     */
     protected void compile(ShortBuffer vboData, ShortBuffer iboData) {
         compileVertexItems(vboData);
         if (iboData != null)

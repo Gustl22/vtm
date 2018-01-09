@@ -18,7 +18,7 @@ import android.os.Bundle;
 
 import org.oscim.android.cache.TileCache;
 import org.oscim.layers.TileGridLayer;
-import org.oscim.layers.tile.buildings.BuildingLayer;
+import org.oscim.layers.tile.buildings.S3DBLayer;
 import org.oscim.layers.tile.vector.VectorTileLayer;
 import org.oscim.layers.tile.vector.labeling.LabelLayer;
 import org.oscim.theme.VtmThemes;
@@ -37,7 +37,7 @@ public class MapzenGeojsonMapActivity extends MapActivity {
         super.onCreate(savedInstanceState);
 
         UrlTileSource tileSource = MapzenGeojsonTileSource.builder()
-                .apiKey("mapzen-xxxxxxx") // Put a proper API key
+                .apiKey("mapzen-usN9Tf3") // Put a proper API key
                 .httpFactory(new OkHttpEngine.OkHttpFactory())
                 //.locale("en")
                 .build();
@@ -52,7 +52,7 @@ public class MapzenGeojsonMapActivity extends MapActivity {
         VectorTileLayer l = mMap.setBaseMap(tileSource);
         mMap.setTheme(VtmThemes.MAPZEN);
 
-        mMap.layers().add(new BuildingLayer(mMap, l));
+        mMap.layers().add(new S3DBLayer(mMap, l));
         mMap.layers().add(new LabelLayer(mMap, l));
 
         mMap.layers().add(new TileGridLayer(mMap, getResources().getDisplayMetrics().density));

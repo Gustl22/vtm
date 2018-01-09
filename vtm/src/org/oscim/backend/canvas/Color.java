@@ -241,6 +241,10 @@ public final class Color {
         return fallBackColor;
     }
 
+    /*public static int toInt(float color) {
+        return (int) (color * 255);
+    }*/
+
     public static boolean isOpaque(int color) {
         return (color & OPAQUE) == OPAQUE;
     }

@@ -67,6 +67,6 @@ public class OSciMapS3DBMapActivity extends BaseMapActivity {
         super.onResume();
 
         /* ignore saved position */
-        mMap.setMapPosition(53.5620092, 9.9866457, 1 << 16);
+//        mMap.setMapPosition(53.5620092, 9.9866457, 1 << 16);
     }
 }

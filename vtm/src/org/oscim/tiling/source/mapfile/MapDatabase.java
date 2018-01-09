@@ -945,7 +945,7 @@ public class MapDatabase implements ITileDataSource {
                     return false;
 
                 /* drop invalid outer ring */
-                if (e.isPoly() && e.index[0] < 6) {
+                if ((e.isPoly() || e.isTris()) && e.index[0] < 6) {
                     continue;
                 }
 

@@ -37,7 +37,7 @@ public class OpenMapTilesGeojsonMapActivity extends MapActivity {
         super.onCreate(savedInstanceState);
 
         UrlTileSource tileSource = OpenMapTilesGeojsonTileSource.builder()
-                .apiKey("xxxxxxx") // Put a proper API key
+                .apiKey("bA6Ul7lhi4jqmgssel3T") // Put a proper API key
                 .httpFactory(new OkHttpEngine.OkHttpFactory())
                 //.locale("en")
                 .build();

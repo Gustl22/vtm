@@ -82,6 +82,30 @@ public class ExtrusionStyle extends RenderStyle<ExtrusionStyle> {
         colors[15] = a;
     }
 
+    /*public static int getTop(float[] colors) {
+        float a = colors[3];
+        return Color.get(a,
+                Color.toInt(colors[0] / a),
+                Color.toInt(colors[1] / a),
+                Color.toInt(colors[2] / a));
+    }
+
+    public static int getSide(float[] colors) {
+        float a = colors[7];
+        return Color.get(a,
+                Color.toInt(colors[4] / a),
+                Color.toInt(colors[5] / a),
+                Color.toInt(colors[6] / a));
+    }
+
+    public static int getLine(float[] colors) {
+        float a = colors[15];
+        return Color.get(a,
+                Color.toInt(colors[12] / a),
+                Color.toInt(colors[13] / a),
+                Color.toInt(colors[14] / a));
+    }*/
+
     @Override
     public ExtrusionStyle current() {
         return (ExtrusionStyle) mCurrent;

@@ -26,6 +26,8 @@ public final class GeometryUtils {
     private GeometryUtils() {
     }
 
+//    private final static float ALMOST_ZERO = 0.0001f;
+
     /**
      * Test if point x/y is in polygon defined by vertices[offset ...
      * offset+length]
@@ -106,6 +108,44 @@ public final class GeometryUtils {
         }
         return bisection;
     }
+
+
+    /**
+     * Calculates the convex hull of specified points.
+     * See: https://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain
+     */
+    /*public static List<float[]> convexHull(List<float[]> P) {
+        if (P.size() > 1) {
+            int n = P.size();
+            List<float[]> lower = new ArrayList<>();
+            List<float[]> upper = new ArrayList<>();
+
+            Collections.sort(P, new Comparator<float[]>() {
+                public int compare(float[] a, float[] b) {
+                    return a[0] == b[0] ? Float.compare(a[1], b[1]) : Float.compare(a[0], b[0]);
+                }
+            });
+
+            // Build lower hull
+            for (int i = 0; i < n; ++i) {
+                while (lower.size() >= 2 && isTrisClockwise(lower.get(lower.size() - 2), lower.get(lower.size() - 1), P.get(i)) <= 0)
+                    lower.remove(lower.size() - 1);
+                lower.add(P.get(i));
+            }
+            lower.remove(lower.size() - 1);
+
+            // Build upper hull
+            for (int i = n - 1; i >= 0; i--) {
+                while (upper.size() >= 2 && isTrisClockwise(upper.get(upper.size() - 2), upper.get(upper.size() - 1), P.get(i)) <= 0)
+                    upper.remove(upper.size() - 1);
+                upper.add(P.get(i));
+            }
+            upper.remove(upper.size() - 1);
+            lower.addAll(upper);
+            return lower;
+        }
+        return null;
+    }*/
 
     /**
      * @param a first vector

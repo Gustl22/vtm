@@ -30,4 +30,16 @@
         android:checkable="true"
         android:title="@string/menu_gridlayer" />
 
+    <item
+        android:id="@+id/labellayer"
+        android:checkable="true"
+        android:title="@string/menu_labellayer"
+        android:visible="false" />
+
+    <item
+        android:id="@+id/rendercolors"
+        android:checkable="true"
+        android:title="@string/menu_colors"
+        android:visible="false" />
+
 </menu>

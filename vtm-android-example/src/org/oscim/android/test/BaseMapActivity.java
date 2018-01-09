@@ -68,8 +68,8 @@ public class BaseMapActivity extends MapActivity {
         /* set initial position on first run */
         MapPosition pos = new MapPosition();
         mMap.getMapPosition(pos);
-        if (pos.x == 0.5 && pos.y == 0.5)
-            mMap.setMapPosition(53.08, 8.83, Math.pow(2, 16));
+//        if (pos.x == 0.5 && pos.y == 0.5)
+//            mMap.setMapPosition(53.08, 8.83, Math.pow(2, 16));
     }
 
     @Override

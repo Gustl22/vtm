@@ -28,9 +28,7 @@ import org.oscim.android.filepicker.FilterByFileExtension;
 import org.oscim.android.filepicker.ValidMapFile;
 import org.oscim.android.filepicker.ValidRenderTheme;
 import org.oscim.core.MapElement;
-import org.oscim.core.MapPosition;
 import org.oscim.core.Tag;
-import org.oscim.core.Tile;
 import org.oscim.layers.TileGridLayer;
 import org.oscim.layers.tile.MapTile;
 import org.oscim.layers.tile.buildings.BuildingLayer;
@@ -63,9 +61,11 @@ public class MapsforgeMapActivity extends MapActivity {
     private static final Tag SEA_TAG = new Tag("natural", "sea");
 
     private TileGridLayer mGridLayer;
+    private LabelLayer mLabelLayer;
     private DefaultMapScaleBar mMapScaleBar;
     private Menu mMenu;
     private boolean mS3db;
+    private S3DBLayer mS3DBLayer = null;
     private VectorTileLayer mTileLayer;
     MapFileTileSource mTileSource;
 
@@ -112,6 +112,14 @@ public class MapsforgeMapActivity extends MapActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.theme_menu, menu);
         mMenu = menu;
+        mMenu.findItem(R.id.labellayer).setVisible(true);
+        mMenu.findItem(R.id.labellayer).setChecked(true);
+
+        if (mS3db) {
+            MenuItem renderColors = mMenu.findItem(R.id.rendercolors);
+            renderColors.setVisible(true);
+            renderColors.setChecked(true);
+        }
         return true;
     }
 
@@ -162,6 +170,29 @@ public class MapsforgeMapActivity extends MapActivity {
                 }
                 mMap.updateMap(true);
                 return true;
+            case R.id.labellayer:
+                if (item.isChecked()) {
+                    item.setChecked(false);
+                    mMap.layers().remove(mLabelLayer);
+                } else {
+                    item.setChecked(true);
+                    if (mLabelLayer == null)
+                        mLabelLayer = new LabelLayer(mMap, mTileLayer);
+
+                    if (!mMap.layers().contains(mLabelLayer)) {
+                        mMap.layers().add(mLabelLayer);
+                    }
+                }
+                mMap.updateMap(true);
+                return true;
+            case R.id.rendercolors:
+                MenuItem renderColors = mMenu.findItem(R.id.rendercolors);
+                boolean checked = renderColors.isChecked();
+                mS3DBLayer.setColored(!checked);
+                renderColors.setChecked(!checked);
+                mMap.clearMap();
+                mMap.updateMap(true);
+                return true;
         }
 
         return false;
@@ -184,11 +215,14 @@ public class MapsforgeMapActivity extends MapActivity {
                 mTileLayer = mMap.setBaseMap(mTileSource);
                 loadTheme(null);
 
-                if (mS3db)
-                    mMap.layers().add(new S3DBLayer(mMap, mTileLayer));
-                else
+                if (mS3db) {
+                    BuildingLayer.POST_AA = true;
+                    mS3DBLayer = new S3DBLayer(mMap, mTileLayer);
+                    mMap.layers().add(mS3DBLayer);
+                } else
                     mMap.layers().add(new BuildingLayer(mMap, mTileLayer));
-                mMap.layers().add(new LabelLayer(mMap, mTileLayer));
+                mLabelLayer = new LabelLayer(mMap, mTileLayer);
+                mMap.layers().add(mLabelLayer);
 
                 mMapScaleBar = new DefaultMapScaleBar(mMap);
                 mMapScaleBar.setScaleBarMode(DefaultMapScaleBar.ScaleBarMode.BOTH);
@@ -203,11 +237,14 @@ public class MapsforgeMapActivity extends MapActivity {
                 mMap.layers().add(mapScaleBarLayer);
 
                 MapInfo info = mTileSource.getMapInfo();
-                MapPosition pos = new MapPosition();
-                pos.setByBoundingBox(info.boundingBox, Tile.SIZE * 4, Tile.SIZE * 4);
-                mMap.setMapPosition(pos);
+//                MapPosition pos = new MapPosition();
+////                pos.setByBoundingBox(info.boundingBox, Tile.SIZE * 4, Tile.SIZE * 4);
+//                pos.setZoomLevel(18);
+////                pos.setPosition(48.13876, 11.57908); // Munich
+//                pos.setPosition(48.48905, 11.13986); // Home
+//                mMap.setMapPosition(pos);
 
-                mPrefs.clear();
+//                mPrefs.clear();
             }
         } else if (requestCode == SELECT_THEME_FILE) {
             if (resultCode != RESULT_OK || intent == null || intent.getStringExtra(FilePicker.SELECTED_FILE) == null) {

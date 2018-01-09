@@ -38,7 +38,7 @@ public class MapzenMvtMapActivity extends MapActivity {
         super.onCreate(savedInstanceState);
 
         UrlTileSource tileSource = MapzenMvtTileSource.builder()
-                .apiKey("mapzen-xxxxxxx") // Put a proper API key
+                .apiKey("mapzen-usN9Tf3") // Put a proper API key
                 .httpFactory(new OkHttpEngine.OkHttpFactory())
                 //.locale("en")
                 .build();
