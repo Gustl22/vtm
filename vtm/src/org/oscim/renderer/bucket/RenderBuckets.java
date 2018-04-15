@@ -1,5 +1,6 @@
 /*
  * Copyright 2012-2014 Hannes Janetzek
+ * Copyright 2018 Gustl22
  *
  * This file is part of the OpenScienceMap project (http://www.opensciencemap.org).
  *
@@ -27,6 +28,8 @@ import org.oscim.theme.styles.LineStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.Buffer;
+import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 
 import static org.oscim.renderer.MapRenderer.COORD_SCALE;
@@ -60,9 +63,14 @@ public class RenderBuckets extends TileData {
     };
 
     public static final int SHORT_BYTES = 2;
-    // public static final int INT_BYTES = 4;
+    public static final int INT_BYTES = 4;
 
     private RenderBucket buckets;
+
+    /**
+     * Indicate if VBO is using GL_INT or GL_SHORT
+     */
+    private final boolean useInt;
 
     /**
      * VBO holds all vertex data to draw lines and polygons after compilation.
@@ -86,6 +94,11 @@ public class RenderBuckets extends TileData {
     private RenderBucket mCurBucket;
 
     public RenderBuckets() {
+        this(false);
+    }
+
+    public RenderBuckets(boolean useInt) {
+        this.useInt = useInt;
     }
 
     /**
@@ -237,7 +250,7 @@ public class RenderBuckets extends TileData {
         if (bucket == null) {
             /* add a new RenderElement */
             if (type == LINE)
-                bucket = new LineBucket(level);
+                bucket = new LineBucket(level, useInt);
             else if (type == POLYGON)
                 bucket = new PolygonBucket(level);
             else if (type == TEXLINE)
@@ -276,8 +289,17 @@ public class RenderBuckets extends TileData {
     private int countVboSize() {
         int vboSize = 0;
 
-        for (RenderBucket l = buckets; l != null; l = l.next)
-            vboSize += l.numVertices * VERTEX_CNT[l.type];
+        for (RenderBucket l = buckets; l != null; l = l.next) {
+            if (!useInt && !l.useInt)
+                vboSize += l.numVertices * VERTEX_CNT[l.type];
+            else if (useInt && l.useInt)
+                vboSize += l.numVertices * VERTEX_CNT[l.type];
+            else {
+                log.error("BUG bucket (int: {}) not matches RenderBuckets (int: {})",
+                        l.useInt, useInt);
+                throw new IllegalArgumentException();
+            }
+        }
 
         return vboSize;
     }
@@ -357,10 +379,18 @@ public class RenderBuckets extends TileData {
         if (addFill)
             vboSize += 8;
 
-        ShortBuffer vboData = MapRenderer.getShortBuffer(vboSize);
+        Buffer vboData;
+        if (useInt)
+            vboData = MapRenderer.getIntBuffer(vboSize);
+        else
+            vboData = MapRenderer.getShortBuffer(vboSize);
 
-        if (addFill)
-            vboData.put(fillShortCoords, 0, 8);
+        if (addFill) {
+            if (useInt)
+                ((IntBuffer) vboData).put(fillIntCoords, 0, 8);
+            else
+                ((ShortBuffer) vboData).put(fillShortCoords, 0, 8);
+        }
 
         ShortBuffer iboData = null;
 
@@ -379,7 +409,11 @@ public class RenderBuckets extends TileData {
             }
         }
 
-        offset[LINE] = vboData.position() * SHORT_BYTES;
+        if (useInt)
+            offset[LINE] = vboData.position() * INT_BYTES;
+        else
+            offset[LINE] = vboData.position() * SHORT_BYTES;
+
         pos = 0;
         for (RenderBucket l = buckets; l != null; l = l.next) {
             if (l.type == LINE) {
@@ -414,11 +448,15 @@ public class RenderBuckets extends TileData {
             return false;
         }
 
-        if (vbo == null)
+        if (vbo == null) {
             vbo = BufferObject.get(GL.ARRAY_BUFFER, vboSize);
+        }
 
         // Set VBO data to READ mode
-        vbo.loadBufferData(vboData.flip(), vboSize * SHORT_BYTES);
+        if (!useInt)
+            vbo.loadBufferData(vboData.flip(), vboSize * SHORT_BYTES);
+        else
+            vbo.loadBufferData(vboData.flip(), vboSize * INT_BYTES);
 
         if (iboSize > 0) {
             if (ibo == null)
@@ -432,10 +470,12 @@ public class RenderBuckets extends TileData {
     }
 
     private static short[] fillShortCoords;
+    private static int[] fillIntCoords;
 
     static {
         short s = (short) (Tile.SIZE * COORD_SCALE);
         fillShortCoords = new short[]{0, s, s, s, 0, 0, s, 0};
+        fillIntCoords = new int[]{0, s, s, s, 0, 0, s, 0};
     }
 
     public static void initRenderer() {

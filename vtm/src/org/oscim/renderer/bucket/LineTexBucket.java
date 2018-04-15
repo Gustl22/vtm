@@ -31,6 +31,7 @@ import org.oscim.utils.FastMath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
@@ -114,7 +115,7 @@ public final class LineTexBucket extends LineBucket {
              * allocated memory */
             numVertices = 1;
         }
-        VertexData vi = vertexItems;
+        IVertexData vi = vertexItems;
 
         /* reset offset to last written position */
         if (!evenSegment)
@@ -165,62 +166,41 @@ public final class LineTexBucket extends LineBucket {
                 //    vy /= dist;
 
                 /* normalized perpendicular to line segment */
-                short dx = (short) ((-vy / dist) * DIR_SCALE);
-                short dy = (short) ((vx / dist) * DIR_SCALE);
+                int dx = (int) ((-vy / dist) * DIR_SCALE);
+                int dy = (int) ((vx / dist) * DIR_SCALE);
 
-                if (lineLength + dist > Short.MAX_VALUE)
-                    lineLength = Short.MIN_VALUE; // reset lineLength (would cause minimal shift)
+                vi.add((int) x, (int) y, dx, dy, (int) lineLength, 0);
 
-                if (dist > (Short.MAX_VALUE - Short.MIN_VALUE)) {
-                    // In rare cases sloping lines are larger than max range of short:
-                    // sqrt(x² + y²) > short range. So need to split them in 2 parts.
-                    // Alternatively can set max clip value to:
-                    // (Short.MAX_VALUE / Math.sqrt(2)) / MapRenderer.COORD_SCALE
-                    float ix = (x + (vx / 2));
-                    float iy = (y + (vy / 2));
-                    addShortVertex(vi, (short) x, (short) y, (short) ix, (short) iy,
-                            dx, dy, (short) lineLength, (int) (dist / 2));
-                    addShortVertex(vi, (short) ix, (short) iy, (short) nx, (short) ny,
-                            dx, dy, (short) lineLength, (int) (dist / 2));
-                } else {
-                    addShortVertex(vi, (short) x, (short) y, (short) nx, (short) ny,
-                            dx, dy, (short) lineLength, (int) dist);
-                    lineLength += dist;
-                }
+                // reset lineLength not necessary
+
+                vi.seek(6);
+                vi.add((int) nx, (int) ny, dx, dy, (int) lineLength, 0);
+
                 x = nx;
                 y = ny;
+
+                if (evenSegment) {
+                    /* go to second segment */
+                    vi.seek(-12);
+                    evenSegment = false;
+
+                    /* vertex 0 and 2 were added */
+                    numVertices += 3;
+                    evenQuads++;
+                } else {
+                    /* go to next block */
+                    evenSegment = true;
+
+                    /* vertex 1 and 3 were added */
+                    numVertices += 1;
+                    oddQuads++;
+                }
             }
         }
 
         /* advance offset to last written position */
         if (!evenSegment)
             vi.seek(12);
-    }
-
-    private void addShortVertex(VertexData vi, short x, short y, short nx, short ny,
-                                short dx, short dy, short lineLength, int dist) {
-
-        vi.add(x, y, dx, dy, lineLength, (short) 0);
-
-        vi.seek(6);
-        vi.add(nx, ny, dx, dy, (short) (lineLength + dist), (short) 0);
-
-        if (evenSegment) {
-            /* go to second segment */
-            vi.seek(-12);
-            evenSegment = false;
-
-            /* vertex 0 and 2 were added */
-            numVertices += 3;
-            evenQuads++;
-        } else {
-            /* go to next block */
-            evenSegment = true;
-
-            /* vertex 1 and 3 were added */
-            numVertices += 1;
-            oddQuads++;
-        }
     }
 
     @Override
@@ -232,7 +212,7 @@ public final class LineTexBucket extends LineBucket {
     }
 
     @Override
-    protected void compile(ShortBuffer vboData, ShortBuffer iboData) {
+    protected void compile(Buffer vboData, ShortBuffer iboData) {
         compileVertexItems(vboData);
         /* add additional vertex for interleaving, see TexLineLayer. */
         vboData.position(vboData.position() + 6);

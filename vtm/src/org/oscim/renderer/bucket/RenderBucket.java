@@ -2,6 +2,7 @@
  * Copyright 2012, 2013 Hannes Janetzek
  * Copyright 2016 Stephan Leuschner 
  * Copyright 2017 Luca Osten
+ * Copyright 2018 Gustl22
  *
  * This file is part of the OpenScienceMap project (http://www.opensciencemap.org).
  *
@@ -20,6 +21,8 @@ package org.oscim.renderer.bucket;
 
 import org.oscim.utils.pool.Inlist;
 
+import java.nio.Buffer;
+import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 
 public abstract class RenderBucket extends Inlist<RenderBucket> {
@@ -50,15 +53,29 @@ public abstract class RenderBucket extends Inlist<RenderBucket> {
     /**
      * Temporary list of vertex data.
      */
-    protected final VertexData vertexItems;
+    protected final IVertexData vertexItems;
     protected final VertexData indiceItems;
 
     static final VertexData EMPTY = new VertexData();
     final boolean quads;
 
+    /**
+     * Indicate if VBO is using GL_SHORT (default) or GL_INT
+     */
+    public final boolean useInt;
+
     protected RenderBucket(byte type, boolean indexed, boolean quads) {
+        this(type, indexed, quads, false);
+    }
+
+    protected RenderBucket(byte type, boolean indexed, boolean quads, boolean useInt) {
         this.type = type;
-        vertexItems = new VertexData();
+        this.useInt = useInt;
+        if (this.useInt)
+            vertexItems = new IntVertexData();
+        else
+            vertexItems = new VertexData();
+
         if (indexed)
             indiceItems = new VertexData();
         else
@@ -114,15 +131,18 @@ public abstract class RenderBucket extends Inlist<RenderBucket> {
 
     protected int indiceOffset; // in bytes
 
-    protected void compile(ShortBuffer vboData, ShortBuffer iboData) {
+    protected void compile(Buffer vboData, ShortBuffer iboData) {
         compileVertexItems(vboData);
         if (iboData != null)
             compileIndicesItems(iboData);
     }
 
-    protected void compileVertexItems(ShortBuffer vboData) {
+    protected void compileVertexItems(Buffer vboData) {
         /* keep offset of layer data in vbo */
-        vertexOffset = vboData.position() * RenderBuckets.SHORT_BYTES;
+        if (vboData instanceof IntBuffer)
+            vertexOffset = vboData.position() * RenderBuckets.INT_BYTES;
+        else
+            vertexOffset = vboData.position() * RenderBuckets.SHORT_BYTES;
         vertexItems.compile(vboData);
     }
 
