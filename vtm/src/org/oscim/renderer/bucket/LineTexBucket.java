@@ -69,7 +69,7 @@ import static org.oscim.renderer.MapRenderer.bindQuadIndicesVBO;
  * flip        0  1  0  1  0  1  0  1
  * </pre>
  * <p/>
- * Vertex layout (here: 1 unit == 1 short):
+ * Vertex layout:
  * [2 unit] position,
  * [2 unit] extrusion,
  * [1 unit] line length
@@ -96,7 +96,11 @@ public final class LineTexBucket extends LineBucket {
     private boolean evenSegment = true;
 
     LineTexBucket(int level) {
-        super(TEXLINE, false, true);
+        this(level, false);
+    }
+
+    LineTexBucket(int level, boolean useInt) {
+        super(TEXLINE, false, true, useInt);
 
         this.level = level;
         this.evenSegment = true;
@@ -272,7 +276,7 @@ public final class LineTexBucket extends LineBucket {
             buf.put(flip);
             buf.flip();
 
-            ShortBuffer sbuf = buf.asShortBuffer();
+            Buffer sbuf = buf.asShortBuffer();
 
             //GL.bindBuffer(GL20.ARRAY_BUFFER, mVertexFlipID);
             GLState.bindVertexBuffer(mVertexFlipID);
@@ -323,10 +327,10 @@ public final class LineTexBucket extends LineBucket {
         }
 
         /* posX, posY, extrX, extrY, length, unused */
-        private static final int STRIDE = 6 * RenderBuckets.SHORT_BYTES;
+        private static final int STRIDE = 6;
 
         /* offset for line length, unused; skip first 4 units */
-        private static final int LEN_OFFSET = 4 * RenderBuckets.SHORT_BYTES;
+        private static final int LEN_OFFSET = 4;
 
         public static RenderBucket draw(RenderBucket b, GLViewport v,
                                         float div, RenderBuckets buckets) {
@@ -393,8 +397,13 @@ public final class LineTexBucket extends LineBucket {
                 /* keep line width fixed */
                 gl.uniform1f(shader.uWidth, (lb.scale * line.width) / s * COORD_SCALE_BY_DIR_SCALE);
 
+                int glDataType = b.useInt ? GL.INT : GL.SHORT;
+                int glNumBytes = b.useInt ? RenderBuckets.INT_BYTES : RenderBuckets.SHORT_BYTES;
+                int strideBytes = STRIDE * glNumBytes;
+                int lenOffsetBytes = LEN_OFFSET * glNumBytes;
+
                 /* add offset vertex */
-                int vOffset = -STRIDE;
+                int vOffset = -strideBytes;
 
                 // TODO interleave 1. and 2. pass to improve vertex cache usage?
                 /* first pass */
@@ -404,20 +413,20 @@ public final class LineTexBucket extends LineBucket {
                     if (numIndices > MAX_INDICES)
                         numIndices = MAX_INDICES;
 
-                    /* i * (24 units per block / 6) * unit bytes) */
-                    int add = (b.vertexOffset + i * 4 * RenderBuckets.SHORT_BYTES) + vOffset;
+                    /* i / 6 * (24 units per block * #DATATYPE bytes) */
+                    int add = (b.vertexOffset + i * 4 * glNumBytes) + vOffset;
 
-                    gl.vertexAttribPointer(aPos0, 4, GL.SHORT, false, STRIDE,
-                            add + STRIDE);
+                    gl.vertexAttribPointer(aPos0, 4, glDataType, false, strideBytes,
+                            add + strideBytes);
 
-                    gl.vertexAttribPointer(aLen0, 2, GL.SHORT, false, STRIDE,
-                            add + STRIDE + LEN_OFFSET);
+                    gl.vertexAttribPointer(aLen0, 2, glDataType, false, strideBytes,
+                            add + strideBytes + lenOffsetBytes);
 
-                    gl.vertexAttribPointer(aPos1, 4, GL.SHORT, false, STRIDE,
+                    gl.vertexAttribPointer(aPos1, 4, glDataType, false, strideBytes,
                             add);
 
-                    gl.vertexAttribPointer(aLen1, 2, GL.SHORT, false, STRIDE,
-                            add + LEN_OFFSET);
+                    gl.vertexAttribPointer(aLen1, 2, glDataType, false, strideBytes,
+                            add + lenOffsetBytes);
 
                     gl.drawElements(GL.TRIANGLES, numIndices,
                             GL.UNSIGNED_SHORT, 0);
@@ -429,20 +438,20 @@ public final class LineTexBucket extends LineBucket {
                     int numIndices = allIndices - i;
                     if (numIndices > MAX_INDICES)
                         numIndices = MAX_INDICES;
-                    /* i * (24 units per block / 6) * unit bytes) */
-                    int add = (b.vertexOffset + i * 4 * RenderBuckets.SHORT_BYTES) + vOffset;
+                    /* i / 6 * (24 units per block * #DATATYPE bytes) */
+                    int add = (b.vertexOffset + i * 4 * glNumBytes) + vOffset;
 
-                    gl.vertexAttribPointer(aPos0, 4, GL.SHORT, false, STRIDE,
-                            add + 2 * STRIDE);
+                    gl.vertexAttribPointer(aPos0, 4, glDataType, false, strideBytes,
+                            add + 2 * strideBytes);
 
-                    gl.vertexAttribPointer(aLen0, 2, GL.SHORT, false, STRIDE,
-                            add + 2 * STRIDE + LEN_OFFSET);
+                    gl.vertexAttribPointer(aLen0, 2, glDataType, false, strideBytes,
+                            add + 2 * strideBytes + lenOffsetBytes);
 
-                    gl.vertexAttribPointer(aPos1, 4, GL.SHORT, false, STRIDE,
-                            add + STRIDE);
+                    gl.vertexAttribPointer(aPos1, 4, glDataType, false, strideBytes,
+                            add + strideBytes);
 
-                    gl.vertexAttribPointer(aLen1, 2, GL.SHORT, false, STRIDE,
-                            add + STRIDE + LEN_OFFSET);
+                    gl.vertexAttribPointer(aLen1, 2, glDataType, false, strideBytes,
+                            add + strideBytes + lenOffsetBytes);
 
                     gl.drawElements(GL.TRIANGLES, numIndices,
                             GL.UNSIGNED_SHORT, 0);

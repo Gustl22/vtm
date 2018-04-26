@@ -86,8 +86,8 @@ public class LineBucket extends RenderBucket {
         this.level = layer;
     }
 
-    LineBucket(byte type, boolean indexed, boolean quads) {
-        super(type, indexed, quads);
+    LineBucket(byte type, boolean indexed, boolean quads, boolean useInt) {
+        super(type, indexed, quads, useInt);
     }
 
     public void addOutline(LineBucket link) {

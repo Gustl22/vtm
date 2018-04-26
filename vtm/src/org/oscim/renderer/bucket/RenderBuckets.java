@@ -254,7 +254,7 @@ public class RenderBuckets extends TileData {
             else if (type == POLYGON)
                 bucket = new PolygonBucket(level);
             else if (type == TEXLINE)
-                bucket = new LineTexBucket(level);
+                bucket = new LineTexBucket(level, useInt);
             else if (type == MESH)
                 bucket = new MeshBucket(level);
             else if (type == HAIRLINE)
