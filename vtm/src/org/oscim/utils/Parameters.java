@@ -22,6 +22,11 @@ public final class Parameters {
     public static boolean ANIMATOR2 = true;
 
     /**
+     * If true the map is rendered with aerial perspective (https://en.wikipedia.org/wiki/Aerial_perspective).
+     */
+    public static boolean AERIAL_PERSPECTIVE = true;
+
+    /**
      * Allow custom scale factor for short vertices instead of the calculated one.
      */
     public static boolean CUSTOM_COORD_SCALE = false;
