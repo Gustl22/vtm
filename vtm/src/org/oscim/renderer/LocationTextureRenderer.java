@@ -318,6 +318,7 @@ public class LocationTextureRenderer extends BucketRenderer {
 
         v.mvp.setTransScale((float) (x * tileScale), (float) (y * tileScale), 1);
         v.mvp.multiplyMM(v.viewproj, v.mvp);
+        v.mv.multiplyMM(v.view, v.mv);
         v.mvp.setAsUniform(hMatrixPosition);
 
         if (!viewShed && animate) {

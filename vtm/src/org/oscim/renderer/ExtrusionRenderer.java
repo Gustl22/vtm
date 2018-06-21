@@ -102,6 +102,8 @@ public abstract class ExtrusionRenderer extends LayerRenderer {
          */
         int uMVP;
 
+        int uMV;
+
         /**
          * The height limit of extrusions as uniform.
          */
@@ -116,6 +118,7 @@ public abstract class ExtrusionRenderer extends LayerRenderer {
                 return;
 
             uMVP = getUniform("u_mvp");
+            uMV = getUniform("u_mv");
             uColor = getUniform("u_color");
             uAlpha = getUniform("u_alpha");
             uMode = getUniform("u_mode");
@@ -316,6 +319,9 @@ public abstract class ExtrusionRenderer extends LayerRenderer {
                         gl.depthFunc(GL.LEQUAL);
                         v.mvp.addDepthOffset(100);
                         v.mvp.setAsUniform(s.uMVP);
+//                        v.mv.addDepthOffset(100);
+                        v.mv.setAsUniform(s.uMV);
+                        v.proj.setAsUniform(s.uMV);
                     }
 
                     gl.uniform1i(s.uMode, 3);
@@ -364,6 +370,10 @@ public abstract class ExtrusionRenderer extends LayerRenderer {
         float x = (float) ((l.x - v.pos.x) * curScale);
         float y = (float) ((l.y - v.pos.y) * curScale);
 
+        v.mv.setTransScale(x, y, scale / COORD_SCALE);
+        v.mv.setValue(10, scale / 10);
+        v.mv.multiplyLhs(v.view);
+
         // Create model matrix
         v.mvp.setTransScale(x, y, scale / COORD_SCALE);
         v.mvp.setValue(10, scale / 10);
@@ -382,8 +392,10 @@ public abstract class ExtrusionRenderer extends LayerRenderer {
             int zoom = (1 << z);
             int delta = (int) (l.x * zoom) % 4 + (int) (l.y * zoom) % 4 * 4;
             v.mvp.addDepthOffset(delta);
+            v.mv.addDepthOffset(delta);
         }
         v.mvp.setAsUniform(s.uMVP);
+        v.mv.setAsUniform(s.uMV);
     }
 
     public void setShader(Shader shader) {

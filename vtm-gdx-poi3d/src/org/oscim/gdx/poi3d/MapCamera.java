@@ -47,6 +47,8 @@ public class MapCamera extends Camera {
         v.mvp.multiplyLhs(v.view);
         v.mvp.get(view.getValues());
 
+        v.mv.copy(v.mvp);
+
         combined.set(projection);
 
         Matrix4.mul(combined.val, view.val);

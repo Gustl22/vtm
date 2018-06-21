@@ -201,6 +201,10 @@ public class BucketRenderer extends LayerRenderer {
                 (float) (v.pos.scale / oPos.scale) / coordScale);
 
         mvp.multiplyLhs(project ? v.viewproj : v.view);
+        v.mv.setTransScale((float) (x * tileScale),
+                (float) (y * tileScale),
+                (float) (v.pos.scale / oPos.scale) / coordScale);
+        v.mv.multiplyLhs(v.view);
     }
 
     /**

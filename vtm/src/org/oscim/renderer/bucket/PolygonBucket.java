@@ -331,6 +331,7 @@ public final class PolygonBucket extends RenderBucket {
                 if (div > 0.5) {
                     /* project bbox of polygon to screen */
                     v.mvp.prj2D(pb.bbox, 0, box, 0, 4);
+                    v.mv.prj2D(pb.bbox, 0, box, 0, 4);
 
                     int out = LineClipper.INSIDE;
                     for (int i = 0; i < 8; i += 2) {

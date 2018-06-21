@@ -249,6 +249,8 @@ public class LocationRenderer extends LayerRenderer {
 
         v.mvp.setTransScale((float) (x * tileScale), (float) (y * tileScale), 1);
         v.mvp.multiplyMM(v.viewproj, v.mvp);
+        v.mv.setTransScale((float) (x * tileScale), (float) (y * tileScale), 1);
+        v.mv.multiplyMM(v.view, v.mv);
         v.mvp.setAsUniform(hMatrixPosition);
 
         if (!viewShed && mAnimate) {

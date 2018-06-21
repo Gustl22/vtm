@@ -2,6 +2,7 @@
 precision highp float;
 #endif
 uniform mat4 u_mvp;
+uniform mat4 u_mv;
 uniform vec4 u_color;
 uniform float u_alpha;
 uniform vec3 u_light;
@@ -13,6 +14,10 @@ varying vec4 color;
 uniform mat4 u_light_mvp;
 varying vec4 v_shadow_coords;
 #endif
+
+// Fog
+const float densitiy = 0.00005;
+const float gradient = 1.6;
 
 void main() {
     // change height by u_alpha
@@ -50,13 +55,18 @@ void main() {
     } else {
         l = 0.5 + l * 0.3;
     }
-    #else
+        #else
     l = 0.75 + l * 0.25;
     #endif
+
+    // Fog
+    float distance = length((u_mv * pos).xyz);
+    float visibility = clamp(exp(-pow((distance * densitiy), gradient)), 0.0, 1.0);
 
     // extreme fake-ssao by height
     l += (clamp(a_pos.z / 2048.0, 0.0, 0.1) - 0.05);
     color = vec4(u_color.rgb * (clamp(l, 0.0, 1.0)), u_color.a) * u_alpha;
+    color = mix(vec4(10, 15, 10, 1.0), color, visibility);
 
     #ifdef SHADOW
     if (hasLight) {
@@ -103,8 +113,8 @@ float decodeFloat (vec4 color) {
     );
     return dot(color, bitShift);
 }
-#endif
-#endif
+    #endif
+    #endif
 
 void main() {
     #ifdef SHADOW
@@ -146,7 +156,7 @@ void main() {
             gl_FragColor = vec4((color.rgb * u_lightColor.rgb) * (1.0 - u_lightColor.a * shadowDiffuse), color.a);
         }
     }
-    #else
+        #else
     gl_FragColor = color;
     #endif
 }
