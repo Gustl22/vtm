@@ -76,13 +76,13 @@ public class LineBucket extends RenderBucket {
 
     private int tmin = Integer.MIN_VALUE, tmax = Integer.MAX_VALUE;
 
-    public LineBucket(int layer) {
-        super(RenderBucket.LINE, false, false);
+    public LineBucket(int layer, boolean height) {
+        super(RenderBucket.LINE, false, false, height);
         this.level = layer;
     }
 
-    LineBucket(byte type, boolean indexed, boolean quads) {
-        super(type, indexed, quads);
+    LineBucket(byte type, boolean indexed, boolean quads, boolean height) {
+        super(type, indexed, quads, height);
     }
 
     public void addOutline(LineBucket link) {
@@ -186,13 +186,12 @@ public class LineBucket extends RenderBucket {
                     points[ipos + 1] == points[ipos + 5])
                 length -= 2;
 
-            addLine(vertexItems, points, ipos, length, rounded, squared, closed);
+            addLine(points, ipos, length, rounded, squared, closed);
 
         }
     }
 
-    private void addVertex(VertexData vi,
-                           float x, float y,
+    private void addVertex(float x, float y,
                            float vNextX, float vNextY,
                            float vPrevX, float vPrevY) {
 
@@ -216,16 +215,16 @@ public class LineBucket extends RenderBucket {
         int ddx = (int) (ux * DIR_SCALE);
         int ddy = (int) (uy * DIR_SCALE);
 
-        vi.add(ox, oy,
+        addVertices(ox, oy,
                 (short) (0 | ddx & DIR_MASK),
                 (short) (1 | ddy & DIR_MASK));
 
-        vi.add(ox, oy,
+        addVertices(ox, oy,
                 (short) (2 | -ddx & DIR_MASK),
                 (short) (1 | -ddy & DIR_MASK));
     }
 
-    private void addLine(VertexData vertices, float[] points, int start, int length,
+    private void addLine(float[] points, int start, int length,
                          boolean rounded, boolean squared, boolean closed) {
 
         float ux, uy;
@@ -278,13 +277,13 @@ public class LineBucket extends RenderBucket {
             dx = (short) (0 | ddx & DIR_MASK);
             dy = (short) (2 | ddy & DIR_MASK);
 
-            vertices.add(ox, oy, (short) dx, (short) dy);
-            vertices.add(ox, oy, (short) dx, (short) dy);
+            addVertices(ox, oy, (short) dx, (short) dy);
+            addVertices(ox, oy, (short) dx, (short) dy);
 
             ddx = (int) (-(ux + vPrevX) * DIR_SCALE);
             ddy = (int) (-(uy + vPrevY) * DIR_SCALE);
 
-            vertices.add(ox, oy,
+            addVertices(ox, oy,
                     (short) (2 | ddx & DIR_MASK),
                     (short) (2 | ddy & DIR_MASK));
 
@@ -292,11 +291,11 @@ public class LineBucket extends RenderBucket {
             ddx = (int) (ux * DIR_SCALE);
             ddy = (int) (uy * DIR_SCALE);
 
-            vertices.add(ox, oy,
+            addVertices(ox, oy,
                     (short) (0 | ddx & DIR_MASK),
                     (short) (1 | ddy & DIR_MASK));
 
-            vertices.add(ox, oy,
+            addVertices(ox, oy,
                     (short) (2 | -ddx & DIR_MASK),
                     (short) (1 | -ddy & DIR_MASK));
         } else {
@@ -323,13 +322,13 @@ public class LineBucket extends RenderBucket {
             dx = (short) (0 | ddx & DIR_MASK);
             dy = (short) (1 | ddy & DIR_MASK);
 
-            vertices.add(ox, oy, (short) dx, (short) dy);
-            vertices.add(ox, oy, (short) dx, (short) dy);
+            addVertices(ox, oy, (short) dx, (short) dy);
+            addVertices(ox, oy, (short) dx, (short) dy);
 
             ddx = (int) (-(ux + tx) * DIR_SCALE);
             ddy = (int) (-(uy + ty) * DIR_SCALE);
 
-            vertices.add(ox, oy,
+            addVertices(ox, oy,
                     (short) (2 | ddx & DIR_MASK),
                     (short) (1 | ddy & DIR_MASK));
         }
@@ -416,7 +415,7 @@ public class LineBucket extends RenderBucket {
                 vNextX /= a;
                 vNextY /= a;
 
-                addVertex(vertices, px, py, vPrevX, vPrevY, vNextX, vNextY);
+                addVertex(px, py, vPrevX, vPrevY, vNextX, vNextY);
 
                 /* flip unit vector to point back */
                 vPrevX = -vNextX;
@@ -430,7 +429,7 @@ public class LineBucket extends RenderBucket {
                 vNextY /= a;
             }
 
-            addVertex(vertices, curX, curY, vPrevX, vPrevY, vNextX, vNextY);
+            addVertex(curX, curY, vPrevX, vPrevY, vNextX, vNextY);
 
             curX = nextX;
             curY = nextY;
@@ -452,11 +451,11 @@ public class LineBucket extends RenderBucket {
             ddx = (int) (ux * DIR_SCALE);
             ddy = (int) (uy * DIR_SCALE);
 
-            vertices.add(ox, oy,
+            addVertices(ox, oy,
                     (short) (0 | ddx & DIR_MASK),
                     (short) (1 | ddy & DIR_MASK));
 
-            vertices.add(ox, oy,
+            addVertices(ox, oy,
                     (short) (2 | -ddx & DIR_MASK),
                     (short) (1 | -ddy & DIR_MASK));
 
@@ -464,7 +463,7 @@ public class LineBucket extends RenderBucket {
             ddx = (int) ((ux - vPrevX) * DIR_SCALE);
             ddy = (int) ((uy - vPrevY) * DIR_SCALE);
 
-            vertices.add(ox, oy,
+            addVertices(ox, oy,
                     (short) (0 | ddx & DIR_MASK),
                     (short) (0 | ddy & DIR_MASK));
 
@@ -489,7 +488,7 @@ public class LineBucket extends RenderBucket {
             ddx = (int) ((ux - vPrevX) * DIR_SCALE);
             ddy = (int) ((uy - vPrevY) * DIR_SCALE);
 
-            vertices.add(ox, oy,
+            addVertices(ox, oy,
                     (short) (0 | ddx & DIR_MASK),
                     (short) (1 | ddy & DIR_MASK));
 
@@ -501,12 +500,19 @@ public class LineBucket extends RenderBucket {
         }
 
         /* add last vertex twice */
-        vertices.add(ox, oy, (short) dx, (short) dy);
-        vertices.add(ox, oy, (short) dx, (short) dy);
+        addVertices(ox, oy, (short) dx, (short) dy);
+        addVertices(ox, oy, (short) dx, (short) dy);
+    }
+
+    private void addVertices(short a, short b, short c, short d) {
+        vertexItems.add(a,b,c,d);
+        if(hasHeight) {
+            vertexItems.add(height);
+        }
     }
 
     static class Shader extends GLShader {
-        int uMVP, uFade, uWidth, uColor, uMode, uHeight, aPos;
+        int uMVP, uFade, uWidth, uColor, uMode, uHeight, aPos, aPosZ;
 
         Shader(String shaderFile) {
             if (!create(shaderFile))
@@ -518,6 +524,7 @@ public class LineBucket extends RenderBucket {
             uMode = getUniform("u_mode");
             uHeight = getUniform("u_height");
             aPos = getAttrib("a_pos");
+            aPosZ = getAttrib("a_pos_z");
         }
 
         @Override
@@ -600,8 +607,18 @@ public class LineBucket extends RenderBucket {
             int uLineWidth = s.uWidth;
             int uLineHeight = s.uHeight;
 
-            gl.vertexAttribPointer(s.aPos, 4, GL.SHORT, false, 0,
-                    buckets.offset[LINE]);
+            if(b.hasHeight) {
+                GLState.enableVertexArrays(s.aPos, s.aPosZ);
+                int stride = (RenderBuckets.VERTEX_CNT[LINE] + 1) * RenderBuckets.SHORT_BYTES;
+                gl.vertexAttribPointer(s.aPos, 4, GL.SHORT, false, stride,
+                        buckets.offset[LINE]);
+                gl.vertexAttribPointer(s.aPosZ, 1, GL.SHORT, false, stride,
+                        buckets.offset[LINE] + RenderBuckets.VERTEX_CNT[LINE] * RenderBuckets.SHORT_BYTES);
+            } else {
+                gl.vertexAttribPointer(s.aPos, 4, GL.SHORT, false, 0,
+                        buckets.offset[LINE]);
+                GLState.enableVertexArrays(s.aPos, GLState.DISABLED);
+            }
 
             v.mvp.setAsUniform(s.uMVP);
 

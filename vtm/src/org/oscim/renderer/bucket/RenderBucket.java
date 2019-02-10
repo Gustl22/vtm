@@ -53,11 +53,23 @@ public abstract class RenderBucket extends Inlist<RenderBucket> {
     protected final VertexData vertexItems;
     protected final VertexData indiceItems;
 
+    protected final boolean hasHeight;
+    protected final float height;
+
     static final VertexData EMPTY = new VertexData();
     final boolean quads;
 
     protected RenderBucket(byte type, boolean indexed, boolean quads) {
+        this(type, indexed, quads, false);
+    }
+
+    protected RenderBucket(byte type, boolean indexed, boolean quads, boolean hasHeight) {
         this.type = type;
+        this.hasHeight = hasHeight;
+        if(hasHeight)
+            height = (float)(100);
+        else height = 0f;
+
         vertexItems = new VertexData();
         if (indexed)
             indiceItems = new VertexData();

@@ -8,14 +8,16 @@ uniform mat4 u_mvp;
 uniform float u_width;
 // xy hold position, zw extrusion vector
 attribute vec4 a_pos;
+attribute float a_pos_z;
 uniform float u_height;
 varying vec2 v_st;
 
 void main() {
+
     // scale extrusion to u_width pixel
     // just ignore the two most insignificant bits.
     vec2 dir = a_pos.zw;
-    gl_Position = u_mvp * vec4(a_pos.xy + (u_width * dir), u_height, 1.0);
+    gl_Position = u_mvp * vec4(a_pos.xy + (u_width * dir), u_height + a_pos_z, 1.0);
 
     // last two bits hold the texture coordinates.
     v_st = abs(mod(dir, 4.0)) - 1.0;

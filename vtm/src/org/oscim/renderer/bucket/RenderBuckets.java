@@ -237,9 +237,9 @@ public class RenderBuckets extends TileData {
         if (bucket == null) {
             /* add a new RenderElement */
             if (type == LINE)
-                bucket = new LineBucket(level);
+                bucket = new LineBucket(level, true);
             else if (type == POLYGON)
-                bucket = new PolygonBucket(level);
+                bucket = new PolygonBucket(level, true);
             else if (type == TEXLINE)
                 bucket = new LineTexBucket(level);
             else if (type == MESH)
@@ -276,8 +276,12 @@ public class RenderBuckets extends TileData {
     private int countVboSize() {
         int vboSize = 0;
 
-        for (RenderBucket l = buckets; l != null; l = l.next)
+        for (RenderBucket l = buckets; l != null; l = l.next) {
             vboSize += l.numVertices * VERTEX_CNT[l.type];
+            if(l.hasHeight) {
+                vboSize += l.numVertices;
+            }
+        }
 
         return vboSize;
     }

@@ -56,8 +56,8 @@ public final class PolygonBucket extends RenderBucket {
 
     public AreaStyle area;
 
-    PolygonBucket(int layer) {
-        super(RenderBucket.POLYGON, true, false);
+    PolygonBucket(int layer, boolean height) {
+        super(RenderBucket.POLYGON, true, false, height);
         level = layer;
     }
 
@@ -88,7 +88,7 @@ public final class PolygonBucket extends RenderBucket {
                 continue;
             }
 
-            vertexItems.add(center, center);
+            addVertices(center, center);
             numVertices++;
 
             int inPos = pos;
@@ -106,7 +106,7 @@ public final class PolygonBucket extends RenderBucket {
                     numIndices++;
                 }
 
-                vertexItems.add((short) x, (short) y);
+                addVertices((short) x, (short) y);
                 numVertices++;
 
                 if (outline) {
@@ -115,11 +115,19 @@ public final class PolygonBucket extends RenderBucket {
                 }
             }
 
-            vertexItems.add((short) (points[pos + 0] * COORD_SCALE),
+            addVertices((short) (points[pos + 0] * COORD_SCALE),
                     (short) (points[pos + 1] * COORD_SCALE));
             numVertices++;
 
             pos += length;
+        }
+    }
+
+    private void addVertices(short a, short b) {
+        if (hasHeight) {
+            vertexItems.add(a, b, (short) height);
+        } else {
+            vertexItems.add(a, b);
         }
     }
 
@@ -188,7 +196,7 @@ public final class PolygonBucket extends RenderBucket {
                 AreaStyle a = l.area.current();
 
                 if (enableTexture && (a.texture != null)) {
-                    s = setShader(texShader, v.mvp, false);
+                    s = setShader(texShader, v.mvp, false, l.hasHeight);
                     float num = clamp((Tile.SIZE / a.texture.width) >> 1, 1, Tile.SIZE);
 
                     float scale = (float) pos.getZoomScale();
@@ -199,7 +207,7 @@ public final class PolygonBucket extends RenderBucket {
                     a.texture.bind();
 
                 } else {
-                    s = setShader(polyShader, v.mvp, false);
+                    s = setShader(polyShader, v.mvp, false, l.hasHeight);
                 }
 
                 float fade = a.getFade(pos.scale);
@@ -242,10 +250,16 @@ public final class PolygonBucket extends RenderBucket {
                 GLUtils.setColor(HairLineBucket.Renderer.shader.uColor,
                         l.area.strokeColor, 1);
 
-                gl.vertexAttribPointer(HairLineBucket.Renderer.shader.aPos,
-                        2, GL.SHORT, false, 0,
-                        // 4 bytes per vertex
-                        l.vertexOffset << 2);
+                if(l.hasHeight) {
+                    //int stride = (RenderBuckets.VERTEX_CNT[POLYGON] + 1) * RenderBuckets.SHORT_BYTES;
+                    gl.vertexAttribPointer(HairLineBucket.Renderer.shader.aPos,
+                            RenderBuckets.VERTEX_CNT[POLYGON] + 1, GL.SHORT, false, 0,
+                            l.vertexOffset * (RenderBuckets.VERTEX_CNT[POLYGON] + 1) * RenderBuckets.SHORT_BYTES);
+                } else {
+                    gl.vertexAttribPointer(HairLineBucket.Renderer.shader.aPos,
+                            RenderBuckets.VERTEX_CNT[POLYGON], GL.SHORT, false, 0,
+                            l.vertexOffset * RenderBuckets.VERTEX_CNT[POLYGON] * RenderBuckets.SHORT_BYTES);
+                }
 
                 gl.uniform1f(HairLineBucket.Renderer.shader.uWidth,
                         a.strokeWidth);
@@ -271,12 +285,18 @@ public final class PolygonBucket extends RenderBucket {
          */
         private static boolean mClear;
 
-        private static Shader setShader(Shader shader, GLMatrix mvp, boolean first) {
+        private static Shader setShader(Shader shader, GLMatrix mvp, boolean first, boolean hasHeight) {
+//            hasHeight = true;
             if (shader.useProgram() || first) {
                 GLState.enableVertexArrays(shader.aPos, GLState.DISABLED);
-
-                gl.vertexAttribPointer(shader.aPos, 2,
-                        GL.SHORT, false, 0, 0);
+                if (hasHeight) {
+                    //int stride = (RenderBuckets.VERTEX_CNT[POLYGON] + 1) * RenderBuckets.SHORT_BYTES;
+                    gl.vertexAttribPointer(shader.aPos, RenderBuckets.VERTEX_CNT[POLYGON] + 1,
+                            GL.SHORT, false, 0, 0);
+                } else {
+                    gl.vertexAttribPointer(shader.aPos, RenderBuckets.VERTEX_CNT[POLYGON],
+                            GL.SHORT, false, 0, 0);
+                }
 
                 mvp.setAsUniform(shader.uMVP);
             }
@@ -301,7 +321,7 @@ public final class PolygonBucket extends RenderBucket {
 
             GLState.test(false, true);
 
-            setShader(polyShader, v.mvp, first);
+            //setShader(polyShader, v.mvp, first, false);
 
             int zoom = v.pos.zoomLevel;
 
@@ -324,6 +344,8 @@ public final class PolygonBucket extends RenderBucket {
             for (; b != null && b.type == POLYGON; b = b.next) {
                 PolygonBucket pb = (PolygonBucket) b;
                 AreaStyle area = pb.area.current();
+
+                setShader(polyShader, v.mvp, first, pb.hasHeight);
 
                 /* fade out polygon bucket (set in RenderTheme) */
                 if (area.fadeScale > 0 && area.fadeScale > zoom)
@@ -395,7 +417,7 @@ public final class PolygonBucket extends RenderBucket {
                     start = cur = 0;
 
                     if (b.next != null && b.next.type == POLYGON) {
-                        setShader(polyShader, v.mvp, false);
+                        setShader(polyShader, v.mvp, false, pb.hasHeight);
                         stencilMask = 0;
                     }
                 }
@@ -419,7 +441,7 @@ public final class PolygonBucket extends RenderBucket {
         }
 
         public static void clip(GLMatrix mvp, int clipMode) {
-            setShader(polyShader, mvp, true);
+            setShader(polyShader, mvp, true, false);
 
             drawStencilRegion(clipMode);
 
@@ -509,7 +531,7 @@ public final class PolygonBucket extends RenderBucket {
          */
         public static void drawOver(GLMatrix mvp, int color, float alpha) {
             /* TODO true could be avoided when same shader and vbo */
-            setShader(polyShader, mvp, true);
+            setShader(polyShader, mvp, true, false);
 
             if (color == 0) {
                 gl.colorMask(false, false, false, false);

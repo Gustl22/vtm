@@ -10,17 +10,18 @@ attribute vec4 a_pos1;
 attribute vec2 a_len0;
 attribute vec2 a_len1;
 attribute float a_flip;
+attribute float a_pos_z;
 varying vec2 v_st;
 
 void main() {
     vec4 pos;
     if (a_flip == 0.0) {
         //    vec2 dir = u_width * a_pos0.zw;
-        pos = vec4(a_pos0.xy + (u_width * a_pos0.zw), 0.0, 1.0);
+        pos = vec4(a_pos0.xy + (u_width * a_pos0.zw), a_pos_z, 1.0);
         v_st = vec2(a_len0.x / u_pscale, 1.0);
     } else {
         //    vec2 dir = u_width * a_pos1.zw;
-        pos = vec4(a_pos1.xy - (u_width * a_pos1.zw), 0.0, 1.0);
+        pos = vec4(a_pos1.xy - (u_width * a_pos1.zw), a_pos_z, 1.0);
         v_st = vec2(a_len1.x / u_pscale, -1.0);
     }
     gl_Position = u_mvp * pos;

@@ -95,7 +95,7 @@ public final class LineTexBucket extends LineBucket {
     private boolean evenSegment = true;
 
     LineTexBucket(int level) {
-        super(TEXLINE, false, true);
+        super(TEXLINE, false, true, false);
 
         this.level = level;
         this.evenSegment = true;

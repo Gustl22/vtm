@@ -78,7 +78,7 @@ public class GridRenderer extends BucketRenderer {
 
         mText = textStyle;
 
-        mLineBucket = new LineBucket(0);
+        mLineBucket = new LineBucket(0, false);
         mLineBucket.line = lineStyle;
 
         if (mText != null) {

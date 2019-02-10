@@ -4,9 +4,10 @@ precision highp float;
 uniform mat4 u_mvp;
 uniform float u_radius;
 attribute vec2 a_pos;
+attribute float a_pos_z;
 
 void main() {
-    gl_Position = u_mvp * vec4(a_pos, 0.0, 1.0);
+    gl_Position = u_mvp * vec4(a_pos, a_pos_z, 1.0);
     gl_PointSize = 2.0 * u_radius / gl_Position.z;
 }
 

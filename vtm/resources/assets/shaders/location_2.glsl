@@ -5,10 +5,11 @@ uniform mat4 u_mvp;
 uniform float u_phase;
 uniform float u_scale;
 attribute vec2 a_pos;
+attribute float a_pos_z;
 varying vec2 v_tex;
 
 void main() {
-    gl_Position = u_mvp * vec4(a_pos * u_scale * u_phase, 0.0, 1.0);
+    gl_Position = u_mvp * vec4(a_pos * u_scale * u_phase, a_pos_z, 1.0);
     v_tex = a_pos;
 }
 

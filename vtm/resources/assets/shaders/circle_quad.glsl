@@ -4,9 +4,10 @@ precision highp float;
 uniform mat4 u_mvp;
 attribute vec2 a_pos;
 varying vec2 v_pos;
+attribute float a_pos_z;
 
 void main() {
-    gl_Position = u_mvp * vec4(a_pos, 0.0, 1.0);
+    gl_Position = u_mvp * vec4(a_pos, a_pos_z, 1.0);
     v_pos = a_pos;
 }
 
