@@ -251,23 +251,26 @@ public final class PolygonBucket extends RenderBucket {
                         l.area.strokeColor, 1);
 
                 if(l.hasHeight) {
-                    //int stride = (RenderBuckets.VERTEX_CNT[POLYGON] + 1) * RenderBuckets.SHORT_BYTES;
-                    gl.vertexAttribPointer(HairLineBucket.Renderer.shader.aPos,
-                            RenderBuckets.VERTEX_CNT[POLYGON] + 1, GL.SHORT, false, 0,
-                            l.vertexOffset * (RenderBuckets.VERTEX_CNT[POLYGON] + 1) * RenderBuckets.SHORT_BYTES);
+//                    GLState.enableVertexArrays(HairLineBucket.Renderer.shader.aPos, HairLineBucket.Renderer.shader.aPosZ);
+//                    int stride = (RenderBuckets.VERTEX_CNT[HAIRLINE] + 1) * RenderBuckets.SHORT_BYTES;
+//                    gl.vertexAttribPointer(HairLineBucket.Renderer.shader.aPos, RenderBuckets.VERTEX_CNT[HAIRLINE], GL.SHORT, false, stride,
+//                            l.vertexOffset * RenderBuckets.SHORT_BYTES);
+//                    gl.vertexAttribPointer(HairLineBucket.Renderer.shader.aPosZ, 1, GL.SHORT, false, stride,
+//                            l.vertexOffset * RenderBuckets.SHORT_BYTES + RenderBuckets.VERTEX_CNT[HAIRLINE] * RenderBuckets.SHORT_BYTES);
                 } else {
-                    gl.vertexAttribPointer(HairLineBucket.Renderer.shader.aPos,
-                            RenderBuckets.VERTEX_CNT[POLYGON], GL.SHORT, false, 0,
-                            l.vertexOffset * RenderBuckets.VERTEX_CNT[POLYGON] * RenderBuckets.SHORT_BYTES);
+//                    GLState.enableVertexArrays(HairLineBucket.Renderer.shader.aPos, GLState.DISABLED);
+//                    gl.vertexAttribPointer(HairLineBucket.Renderer.shader.aPos,
+//                            RenderBuckets.VERTEX_CNT[HAIRLINE], GL.SHORT, false, 0,
+//                            l.vertexOffset * RenderBuckets.VERTEX_CNT[HAIRLINE] * RenderBuckets.SHORT_BYTES);
                 }
 
                 gl.uniform1f(HairLineBucket.Renderer.shader.uWidth,
                         a.strokeWidth);
 
-                gl.drawElements(GL.LINES,
-                        l.numIndices,
-                        GL.UNSIGNED_SHORT,
-                        l.indiceOffset);
+//                gl.drawElements(GL.LINES,
+//                        l.numIndices,
+//                        GL.UNSIGNED_SHORT,
+//                        l.indiceOffset);
                 gl.lineWidth(1);
 
                 ///* disable texture shader */

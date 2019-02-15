@@ -103,7 +103,7 @@ public class HairLineBucket extends RenderBucket {
         }
 
         public static class Shader extends GLShader {
-            int uMVP, uColor, uWidth, uScreen, aPos;
+            int uMVP, uColor, uWidth, uScreen, aPos, aPosZ;
 
             Shader(String shaderFile) {
                 if (!create(shaderFile))
@@ -114,6 +114,7 @@ public class HairLineBucket extends RenderBucket {
                 uWidth = getUniform("u_width");
                 uScreen = getUniform("u_screen");
                 aPos = getAttrib("a_pos");
+                aPosZ = getAttrib("a_pos_z");
             }
 
             public void set(GLViewport v) {
