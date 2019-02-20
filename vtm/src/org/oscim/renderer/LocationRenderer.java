@@ -221,12 +221,12 @@ public class LocationRenderer extends LayerRenderer {
     @Override
     public void render(GLViewport v) {
 
-        GLState.useProgram(mShaderProgram);
-        GLState.blend(true);
-        GLState.test(false, false);
+        mGLState.useProgram(mShaderProgram);
+        mGLState.blend(true);
+        mGLState.test(false, false);
 
-        GLState.enableVertexArrays(hVertexPosition, GLState.DISABLED);
-        MapRenderer.bindQuadVertexVBO(hVertexPosition/*, true*/);
+        mGLState.enableVertexArrays(hVertexPosition, GLState.DISABLED);
+        mGLState.bindQuadVertexVBO(hVertexPosition/*, true*/);
 
         float radius = CIRCLE_SIZE * mScale;
 

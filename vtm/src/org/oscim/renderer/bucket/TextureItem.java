@@ -24,6 +24,7 @@ import org.oscim.backend.canvas.Bitmap;
 import org.oscim.backend.canvas.Color;
 import org.oscim.renderer.GLState;
 import org.oscim.renderer.GLUtils;
+import org.oscim.renderer.MapRenderer;
 import org.oscim.utils.pool.Inlist;
 import org.oscim.utils.pool.SyncPool;
 import org.slf4j.Logger;
@@ -39,6 +40,8 @@ public class TextureItem extends Inlist<TextureItem> {
     static final Logger log = LoggerFactory.getLogger(TextureItem.class);
 
     static final boolean dbg = false;
+
+    final GLState mGLState = MapRenderer.getInstance().getGLState();
 
     /**
      * texture ID
@@ -88,7 +91,7 @@ public class TextureItem extends Inlist<TextureItem> {
     }
 
     public TextureItem(Bitmap bitmap, boolean repeat) {
-        this(NOPOOL, -1, bitmap.getWidth(), bitmap.getHeight(), repeat);
+        this(null, -1, bitmap.getWidth(), bitmap.getHeight(), repeat);
         this.bitmap = bitmap;
     }
 
@@ -96,13 +99,13 @@ public class TextureItem extends Inlist<TextureItem> {
         this.id = id;
         this.width = width;
         this.height = height;
-        this.pool = pool;
+        this.pool = pool == null ? NOPOOL : pool;
         this.repeat = repeat;
     }
 
     public static TextureItem clone(TextureItem ti) {
 
-        TextureItem clone = new TextureItem(NOPOOL, ti.id, ti.width, ti.height, ti.repeat);
+        TextureItem clone = new TextureItem(null, ti.id, ti.width, ti.height, ti.repeat);
         clone.id = ti.id;
         clone.ref = (ti.ref == null) ? ti : ti.ref;
         clone.loaded = ti.loaded;
@@ -121,7 +124,7 @@ public class TextureItem extends Inlist<TextureItem> {
             return;
 
         if (ref == null) {
-            pool.uploadTexture(this);
+            pool.uploadTexture(mGLState, this);
 
         } else {
             /* load referenced texture */
@@ -138,7 +141,7 @@ public class TextureItem extends Inlist<TextureItem> {
      */
     public void bind() {
         if (loaded)
-            GLState.bindTex2D(id);
+            mGLState.bindTex2D(id);
         else
             upload();
     }
@@ -273,7 +276,7 @@ public class TextureItem extends Inlist<TextureItem> {
             }
         }
 
-        private void uploadTexture(TextureItem t) {
+        private void uploadTexture(GLState glState, TextureItem t) {
 
             if (t.bitmap == null)
                 throw new RuntimeException("Missing bitmap for texture");
@@ -284,7 +287,7 @@ public class TextureItem extends Inlist<TextureItem> {
 
                 t.mipmap |= mMipmaps;
 
-                initTexture(t);
+                initTexture(glState, t);
 
                 if (dbg)
                     log.debug("fill:" + getFill()
@@ -295,7 +298,7 @@ public class TextureItem extends Inlist<TextureItem> {
 
                 t.bitmap.uploadToTexture(false);
             } else {
-                GLState.bindTex2D(t.id);
+                glState.bindTex2D(t.id);
 
                 /* use faster subimage upload */
                 t.bitmap.uploadToTexture(true);
@@ -311,8 +314,8 @@ public class TextureItem extends Inlist<TextureItem> {
                 releaseBitmap(t);
         }
 
-        protected void initTexture(TextureItem t) {
-            GLState.bindTex2D(t.id);
+        protected void initTexture(GLState glState, TextureItem t) {
+            glState.bindTex2D(t.id);
 
             if (t.mipmap) {
                 gl.texParameterf(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER,

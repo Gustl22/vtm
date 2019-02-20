@@ -36,6 +36,8 @@ import static org.oscim.backend.GLAdapter.gl;
 public class MapRenderer {
     static final Logger log = LoggerFactory.getLogger(MapRenderer.class);
 
+    static MapRenderer instance;
+
     /**
      * scale factor used for short vertices
      */
@@ -43,11 +45,9 @@ public class MapRenderer {
 
     private final Map mMap;
     private final GLViewport mViewport;
+    private final GLState mGLState;
 
-    private static float[] mClearColor;
-
-    private static int mQuadIndicesID;
-    private static int mQuadVerticesID;
+    private float[] mClearColor;
 
     /**
      * Number of Quads that can be rendered with bindQuadIndicesVBO()
@@ -59,7 +59,7 @@ public class MapRenderer {
     public static final int MAX_INDICES = MAX_QUADS * 6;
 
     public static long frametime;
-    private static boolean rerender;
+    private boolean rerender;
 
     private static NativeBufferPool mBufferPool;
 
@@ -68,15 +68,26 @@ public class MapRenderer {
     public MapRenderer(Map map) {
         mMap = map;
         mViewport = new GLViewport();
+        mGLState = new GLState();
         mBufferPool = new NativeBufferPool();
 
         /* FIXME should be done in 'destroy' method
          * clear all previous vbo refs */
         BufferObject.clear();
         setBackgroundColor(Color.DKGRAY);
+
+        instance = this;
     }
 
-    public static void setBackgroundColor(int color) {
+    public static MapRenderer getInstance() {
+        return instance;
+    }
+
+    public GLState getGLState() {
+        return mGLState;
+    }
+
+    public void setBackgroundColor(int color) {
         mClearColor = GLUtils.colorToFloat(color);
     }
 
@@ -103,7 +114,7 @@ public class MapRenderer {
 
     private void draw() {
 
-        GLState.setClearColor(mClearColor);
+        mGLState.setClearColor(mClearColor);
 
         gl.depthMask(true);
         gl.stencilMask(0xFF);
@@ -115,12 +126,12 @@ public class MapRenderer {
         gl.depthMask(false);
         gl.stencilMask(0);
 
-        GLState.test(false, false);
-        GLState.blend(false);
-        GLState.bindTex2D(GLState.DISABLED);
-        GLState.useProgram(GLState.DISABLED);
-        GLState.bindElementBuffer(GLState.DISABLED);
-        GLState.bindVertexBuffer(GLState.DISABLED);
+        mGLState.test(false, false);
+        mGLState.blend(false);
+        mGLState.bindTex2D(GLState.DISABLED);
+        mGLState.useProgram(GLState.DISABLED);
+        mGLState.bindElementBuffer(GLState.DISABLED);
+        mGLState.bindVertexBuffer(GLState.DISABLED);
 
         mViewport.setFrom(mMap);
 
@@ -172,7 +183,7 @@ public class MapRenderer {
         if (width <= 0 || height <= 0)
             return;
 
-        GLState.viewport(width, height);
+        mGLState.viewport(width, height);
 
         //GL.scissor(0, 0, width, height);
         //GL.enable(GL20.SCISSOR_TEST);
@@ -195,7 +206,7 @@ public class MapRenderer {
         /* initialize quad indices used by Texture- and LineTexRenderer */
         int[] vboIds = GLUtils.glGenBuffers(2);
 
-        mQuadIndicesID = vboIds[0];
+        mGLState.mQuadIndicesID = vboIds[0];
 
         short[] indices = new short[MAX_INDICES];
         for (int i = 0, j = 0; i < MAX_INDICES; i += 6, j += 4) {
@@ -211,26 +222,26 @@ public class MapRenderer {
         buf.put(indices);
         buf.flip();
 
-        GLState.bindElementBuffer(mQuadIndicesID);
+        mGLState.bindElementBuffer(mGLState.mQuadIndicesID);
         gl.bufferData(GL.ELEMENT_ARRAY_BUFFER,
                 indices.length * 2, buf,
                 GL.STATIC_DRAW);
-        GLState.bindElementBuffer(GLState.UNBIND);
+        mGLState.bindElementBuffer(GLState.UNBIND);
 
         /* initialize default quad */
         FloatBuffer floatBuffer = MapRenderer.getFloatBuffer(8);
         float[] quad = new float[]{-1, -1, -1, 1, 1, -1, 1, 1};
         floatBuffer.put(quad);
         floatBuffer.flip();
-        mQuadVerticesID = vboIds[1];
+        mGLState.mQuadVerticesID = vboIds[1];
 
-        GLState.bindVertexBuffer(mQuadVerticesID);
+        mGLState.bindVertexBuffer(mGLState.mQuadVerticesID);
         gl.bufferData(GL.ARRAY_BUFFER,
                 quad.length * 4, floatBuffer,
                 GL.STATIC_DRAW);
-        GLState.bindVertexBuffer(GLState.UNBIND);
+        mGLState.bindVertexBuffer(GLState.UNBIND);
 
-        GLState.init();
+        mGLState.init();
 
         mMap.updateMap(true);
     }
@@ -248,13 +259,10 @@ public class MapRenderer {
             GLAdapter.NO_BUFFER_SUB_DATA = true;
         }
 
-        GLState.init();
+        mGLState.init();
 
         // Set up some vertex buffer objects
         BufferObject.init(200);
-
-        // classes that require GL context for initialization
-        RenderBuckets.initRenderer();
 
         mNewSurface = true;
     }
@@ -262,34 +270,10 @@ public class MapRenderer {
     private boolean mNewSurface;
 
     /**
-     * Bind VBO for a simple quad. Handy for simple custom RenderLayers
-     * Vertices: float[]{ -1, -1, -1, 1, 1, -1, 1, 1 }
-     * <p/>
-     * GL.drawArrays(GL20.TRIANGLE_STRIP, 0, 4);
-     */
-    public static void bindQuadVertexVBO(int location) {
-
-        if (location >= 0) {
-            GLState.bindVertexBuffer(mQuadVerticesID);
-            GLState.enableVertexArrays(location, GLState.DISABLED);
-            gl.vertexAttribPointer(location, 2, GL.FLOAT, false, 0, 0);
-        }
-    }
-
-    /**
-     * Bind indices for rendering up to MAX_QUADS (512),
-     * ie. MAX_INDICES (512*6) in one draw call.
-     * Vertex order is 0-1-2 2-1-3
-     */
-    public static void bindQuadIndicesVBO() {
-        GLState.bindElementBuffer(mQuadIndicesID);
-    }
-
-    /**
      * Trigger next redraw from GL-Thread. This should be used to animate
      * LayerRenderers instead of calling Map.render().
      */
-    public static void animate() {
+    public void animate() {
         rerender = true;
     }
 

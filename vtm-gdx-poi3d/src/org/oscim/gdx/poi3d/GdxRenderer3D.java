@@ -65,7 +65,7 @@ public class GdxRenderer3D extends LayerRenderer {
 
         // shader = new DefaultShader(renderable.material,
         // renderable.mesh.getVertexAttributes(), true, false, 1, 0, 0, 0);
-        // shader.init();
+        // shader.initBucketRenderers();
 
         return true;
     }
@@ -103,16 +103,16 @@ public class GdxRenderer3D extends LayerRenderer {
         // GL.clear(GL20.DEPTH_BUFFER_BIT);
 
         // Unbind via GLState to ensure no buffer is replaced by accident
-        GLState.bindElementBuffer(GLState.UNBIND);
-        GLState.bindBuffer(GL.ARRAY_BUFFER, GLState.UNBIND);
+        mGLState.bindElementBuffer(GLState.UNBIND);
+        mGLState.bindBuffer(GL.ARRAY_BUFFER, GLState.UNBIND);
 
         // set state that is expected after modelBatch.end();
         // modelBatch keeps track of its own state
-        GLState.enableVertexArrays(GLState.DISABLED, GLState.DISABLED);
-        GLState.bindTex2D(GLState.DISABLED);
-        GLState.useProgram(GLState.DISABLED);
-        GLState.test(false, false);
-        GLState.blend(false);
+        mGLState.enableVertexArrays(GLState.DISABLED, GLState.DISABLED);
+        mGLState.bindTex2D(GLState.DISABLED);
+        mGLState.useProgram(GLState.DISABLED);
+        mGLState.test(false, false);
+        mGLState.blend(false);
 
         cam.update(v);
         long time = System.currentTimeMillis();
@@ -188,8 +188,8 @@ public class GdxRenderer3D extends LayerRenderer {
         //log.debug(">>> " + (System.currentTimeMillis() - time) + " " + cnt + "/" + rnd);
 
         gl.depthMask(false);
-        GLState.bindElementBuffer(GLState.UNBIND);
-        GLState.bindBuffer(GL.ARRAY_BUFFER, GLState.UNBIND);
+        mGLState.bindElementBuffer(GLState.UNBIND);
+        mGLState.bindBuffer(GL.ARRAY_BUFFER, GLState.UNBIND);
     }
 
     // @Override

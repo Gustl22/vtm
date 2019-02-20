@@ -46,7 +46,7 @@ import org.oscim.tiling.source.oscimap4.OSciMap4TileSource;
 public class IOSMapApp extends GdxMap {
 
     public static void init() {
-        // init globals
+        // initBucketRenderers globals
         IosGraphics.init();
         GdxAssets.init("assets/");
         DateTimeAdapter.init(new DateTime());

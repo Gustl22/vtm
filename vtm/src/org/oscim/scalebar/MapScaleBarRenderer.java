@@ -21,7 +21,7 @@ import org.oscim.renderer.GLViewport;
 public class MapScaleBarRenderer extends BitmapRenderer {
     @Override
     public synchronized void render(GLViewport v) {
-        GLState.test(false, false);
+        mGLState.test(false, false);
         super.render(v);
     }
 }

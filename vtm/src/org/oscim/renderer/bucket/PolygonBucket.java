@@ -28,6 +28,7 @@ import org.oscim.renderer.GLShader;
 import org.oscim.renderer.GLState;
 import org.oscim.renderer.GLUtils;
 import org.oscim.renderer.GLViewport;
+import org.oscim.renderer.StateRenderer;
 import org.oscim.theme.styles.AreaStyle;
 import org.oscim.utils.ArrayUtils;
 import org.oscim.utils.geom.LineClipper;
@@ -154,17 +155,22 @@ public final class PolygonBucket extends RenderBucket {
         }
     }
 
-    public static final class Renderer {
+    public static final class Renderer extends StateRenderer {
 
         private static final int STENCIL_BITS = 8;
         public static final int CLIP_BIT = 0x80;
 
-        private static PolygonBucket[] mAreaLayer;
+        private PolygonBucket[] mAreaLayer;
 
-        private static Shader polyShader;
-        private static Shader texShader;
+        private Shader polyShader;
+        private Shader texShader;
 
-        static boolean init() {
+        public Renderer(GLState glState) {
+            super(glState);
+            init();
+        }
+
+        boolean init() {
             polyShader = new Shader("base_shader");
             texShader = new Shader("polygon_layer_tex");
 
@@ -173,8 +179,8 @@ public final class PolygonBucket extends RenderBucket {
             return true;
         }
 
-        private static void fillPolygons(GLViewport v, int start, int end,
-                                         MapPosition pos, float div) {
+        private void fillPolygons(GLViewport v, int start, int end,
+                                  MapPosition pos, float div) {
 
             /* draw to framebuffer */
             gl.colorMask(true, true, true, true);
@@ -220,7 +226,7 @@ public final class PolygonBucket extends RenderBucket {
                     GLUtils.setColor(s.uColor, a.color, fade);
                 }
 
-                GLState.blend(blend);
+                mGLState.blend(blend);
 
                 /* set stencil buffer mask used to draw this layer
                  * also check that clip bit is set to avoid overdraw
@@ -235,7 +241,7 @@ public final class PolygonBucket extends RenderBucket {
 
                 gl.stencilFunc(GL.EQUAL, CLIP_BIT, CLIP_BIT);
 
-                GLState.blend(true);
+                mGLState.blend(true);
 
                 HairLineBucket.Renderer.shader.set(v);
 
@@ -265,15 +271,15 @@ public final class PolygonBucket extends RenderBucket {
         /**
          * current layer to fill (0 - STENCIL_BITS-1)
          */
-        private static int mCount;
+        private int mCount;
         /**
          * must clear stencil for next draw
          */
-        private static boolean mClear;
+        private boolean mClear;
 
-        private static Shader setShader(Shader shader, GLMatrix mvp, boolean first) {
-            if (shader.useProgram() || first) {
-                GLState.enableVertexArrays(shader.aPos, GLState.DISABLED);
+        private Shader setShader(Shader shader, GLMatrix mvp, boolean first) {
+            if (mGLState.useProgram(shader.program) || first) {
+                mGLState.enableVertexArrays(shader.aPos, GLState.DISABLED);
 
                 gl.vertexAttribPointer(shader.aPos, 2,
                         GL.SHORT, false, 0, 0);
@@ -283,7 +289,7 @@ public final class PolygonBucket extends RenderBucket {
             return shader;
         }
 
-        static float[] mBBox = new float[8];
+        float[] mBBox = new float[8];
         static LineClipper mScreenClip = new LineClipper(-1, -1, 1, 1);
 
         /**
@@ -296,10 +302,10 @@ public final class PolygonBucket extends RenderBucket {
          * @param first   pass true to clear stencil buffer region
          * @return next layer
          */
-        public static RenderBucket draw(RenderBucket buckets, GLViewport v,
-                                        float div, boolean first) {
+        public RenderBucket draw(RenderBucket buckets, GLViewport v,
+                                 float div, boolean first) {
 
-            GLState.test(false, true);
+            mGLState.test(false, true);
 
             setShader(polyShader, v.mvp, first);
 
@@ -418,7 +424,7 @@ public final class PolygonBucket extends RenderBucket {
             return b;
         }
 
-        public static void clip(GLMatrix mvp, int clipMode) {
+        public void clip(GLMatrix mvp, int clipMode) {
             setShader(polyShader, mvp, true);
 
             drawStencilRegion(clipMode);
@@ -437,7 +443,7 @@ public final class PolygonBucket extends RenderBucket {
          * @param clipMode clip to first quad in current vbo
          *                 using CLIP_STENCIL / CLIP_DEPTH
          */
-        static void drawStencilRegion(int clipMode) {
+        void drawStencilRegion(int clipMode) {
             //log.debug("draw stencil {}", clipMode);
             mCount = 0;
             mClear = false;
@@ -457,10 +463,10 @@ public final class PolygonBucket extends RenderBucket {
             if (clipMode == CLIP_DEPTH) {
                 /* tests GL20.LESS/GL20.ALWAYS and */
                 /* write tile region to depth buffer */
-                GLState.test(true, true);
+                mGLState.test(true, true);
                 gl.depthMask(true);
             } else {
-                GLState.test(false, true);
+                mGLState.test(false, true);
             }
 
             /* always pass stencil test and set clip bit */
@@ -475,12 +481,12 @@ public final class PolygonBucket extends RenderBucket {
             if (clipMode == CLIP_DEPTH) {
                 /* dont modify depth buffer */
                 gl.depthMask(false);
-                GLState.test(false, true);
+                mGLState.test(false, true);
             }
             gl.stencilFunc(GL.EQUAL, CLIP_BIT, CLIP_BIT);
         }
 
-        static void clearStencilRegion() {
+        void clearStencilRegion() {
 
             mCount = 0;
             mClear = false;
@@ -507,7 +513,7 @@ public final class PolygonBucket extends RenderBucket {
          * a quad with func 'always' and op 'zero'. Using 'color'
          * and 'alpha' to fake a fade effect.
          */
-        public static void drawOver(GLMatrix mvp, int color, float alpha) {
+        public void drawOver(GLMatrix mvp, int color, float alpha) {
             /* TODO true could be avoided when same shader and vbo */
             setShader(polyShader, mvp, true);
 
@@ -515,7 +521,7 @@ public final class PolygonBucket extends RenderBucket {
                 gl.colorMask(false, false, false, false);
             } else {
                 GLUtils.setColor(polyShader.uColor, color, alpha);
-                GLState.blend(true);
+                mGLState.blend(true);
             }
 
             // TODO always pass stencil test: <-- only if not proxy?
@@ -527,7 +533,7 @@ public final class PolygonBucket extends RenderBucket {
             gl.stencilMask(0xFF);
 
             // FIXME uneeded probably
-            GLState.test(false, true);
+            mGLState.test(false, true);
 
             /* zero out area to draw to */
             gl.stencilOp(GL.KEEP, GL.KEEP, GL.ZERO);
@@ -536,10 +542,6 @@ public final class PolygonBucket extends RenderBucket {
 
             if (color == 0)
                 gl.colorMask(true, true, true, true);
-        }
-
-        private Renderer() {
-            /* Singleton */
         }
     }
 }

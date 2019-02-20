@@ -144,13 +144,13 @@ public class OffscreenRenderer extends LayerRenderer {
 
     public void enable(boolean on) {
         if (on)
-            GLState.bindFramebuffer(fb);
+            mGLState.bindFramebuffer(fb);
         else
-            GLState.bindFramebuffer(0);
+            mGLState.bindFramebuffer(0);
     }
 
     public void begin() {
-        GLState.bindFramebuffer(fb);
+        mGLState.bindFramebuffer(fb);
         gl.depthMask(true);
         gl.clear(GL.DEPTH_BUFFER_BIT);
     }
@@ -192,37 +192,37 @@ public class OffscreenRenderer extends LayerRenderer {
 
     @Override
     public void render(GLViewport viewport) {
-        GLState.bindFramebuffer(fb);
-        GLState.viewport(texW, texH);
+        mGLState.bindFramebuffer(fb);
+        mGLState.viewport(texW, texH);
         gl.depthMask(true);
-        GLState.setClearColor(mClearColor);
+        mGLState.setClearColor(mClearColor);
         gl.clear(GL.DEPTH_BUFFER_BIT | GL.COLOR_BUFFER_BIT);
 
         mRenderer.render(viewport);
 
-        GLState.bindFramebuffer(0);
+        mGLState.bindFramebuffer(0);
 
-        mShader.useProgram();
+        mGLState.useProgram(mShader.program);
 
         /* bind depth texture */
         if (useDepthTexture) {
             gl.activeTexture(GL.TEXTURE1);
-            GLState.bindTex2D(renderDepth);
+            mGLState.bindTex2D(renderDepth);
             gl.uniform1i(mShader.uTexDepth, 1);
             gl.activeTexture(GL.TEXTURE0);
         }
         /* bind color texture */
-        GLState.bindTex2D(renderTex);
+        mGLState.bindTex2D(renderTex);
         gl.uniform1i(mShader.uTexColor, 0);
 
-        MapRenderer.bindQuadVertexVBO(mShader.aPos);
+        mGLState.bindQuadVertexVBO(mShader.aPos);
 
         gl.uniform2f(mShader.uPixel,
                 (float) (1.0 / texW * 0.5),
                 (float) (1.0 / texH * 0.5));
 
-        GLState.test(false, false);
-        GLState.blend(true);
+        mGLState.test(false, false);
+        mGLState.blend(true);
         gl.drawArrays(GL.TRIANGLE_STRIP, 0, 4);
         GLUtils.checkGlError(getClass().getName() + ": render() end");
     }

@@ -21,6 +21,7 @@ import org.oscim.backend.canvas.Bitmap;
 import org.oscim.renderer.GLShader;
 import org.oscim.renderer.GLState;
 import org.oscim.renderer.GLViewport;
+import org.oscim.renderer.StateRenderer;
 import org.oscim.renderer.bucket.TextureItem.TexturePool;
 
 import java.nio.ShortBuffer;
@@ -28,7 +29,6 @@ import java.nio.ShortBuffer;
 import static org.oscim.backend.GLAdapter.gl;
 import static org.oscim.renderer.MapRenderer.COORD_SCALE;
 import static org.oscim.renderer.MapRenderer.MAX_INDICES;
-import static org.oscim.renderer.MapRenderer.bindQuadIndicesVBO;
 
 /**
  * Renderer for a single bitmap, width and height must be power of 2.
@@ -163,52 +163,52 @@ public class BitmapBucket extends TextureBucket {
         //textures = null;
     }
 
-    static class Shader extends GLShader {
-        int uMVP, uAlpha, aPos, aTexCoord;
+    public static final class Renderer extends StateRenderer {
 
-        Shader(String shaderFile) {
-            if (!create(shaderFile))
-                return;
-            uMVP = getUniform("u_mvp");
-            uAlpha = getUniform("u_alpha");
-            aPos = getAttrib("vertex");
-            aTexCoord = getAttrib("tex_coord");
-        }
-
-        @Override
-        public boolean useProgram() {
-            if (super.useProgram()) {
-                GLState.enableVertexArrays(aPos, aTexCoord);
-                return true;
-            }
-            return false;
-        }
-    }
-
-    public static final class Renderer {
-
-        public static final int INDICES_PER_SPRITE = 6;
+        static final int INDICES_PER_SPRITE = 6;
         static final int VERTICES_PER_SPRITE = 4;
         static final int SHORTS_PER_VERTICE = 6;
-        static Shader shader;
+        Shader shader;
 
-        static void init() {
+        public Renderer(GLState glState) {
+            super(glState);
             shader = new Shader("texture_alpha");
         }
 
-        public static RenderBucket draw(RenderBucket b, GLViewport v,
+        class Shader extends GLShader {
+            int uMVP, uAlpha, aPos, aTexCoord;
+
+            Shader(String shaderFile) {
+                if (!create(shaderFile))
+                    return;
+                uMVP = getUniform("u_mvp");
+                uAlpha = getUniform("u_alpha");
+                aPos = getAttrib("vertex");
+                aTexCoord = getAttrib("tex_coord");
+            }
+
+            public boolean useProgram() {
+                if (mGLState.useProgram(program)) {
+                    mGLState.enableVertexArrays(aPos, aTexCoord);
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        public RenderBucket draw(RenderBucket b, GLViewport v,
                                         float scale, float alpha) {
 
-            GLState.blend(true);
+            mGLState.blend(true);
             Shader s = shader;
-            s.useProgram();
+            mGLState.useProgram(s.program);
 
             TextureBucket tb = (TextureBucket) b;
 
             gl.uniform1f(s.uAlpha, alpha);
             v.mvp.setAsUniform(s.uMVP);
 
-            bindQuadIndicesVBO();
+            mGLState.bindQuadIndicesVBO();
 
             for (TextureItem t = tb.textures; t != null; t = t.next) {
                 t.bind();

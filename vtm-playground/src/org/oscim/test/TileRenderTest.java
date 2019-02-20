@@ -132,7 +132,7 @@ public class TileRenderTest extends GdxMapApp {
 
         mMap.layers().add(labelLayer);
 
-        MapRenderer.setBackgroundColor(0xff888888);
+        MapRenderer.getInstance().setBackgroundColor(0xff888888);
     }
 
     static class TestTileLoader extends VectorTileLoader {

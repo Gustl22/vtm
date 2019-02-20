@@ -63,7 +63,7 @@ public class BitmapTileTest extends GdxMapApp {
 
     @Override
     public void createLayers() {
-        MapRenderer.setBackgroundColor(0xff888888);
+        MapRenderer.getInstance().setBackgroundColor(0xff888888);
 
         mLayer = new BitmapTileLayer(mMap, DefaultSources.OPENSTREETMAP.build());
         mMap.layers().add(mLayer);

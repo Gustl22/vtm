@@ -23,6 +23,7 @@ import org.oscim.renderer.GLShader;
 import org.oscim.renderer.GLState;
 import org.oscim.renderer.GLUtils;
 import org.oscim.renderer.GLViewport;
+import org.oscim.renderer.StateRenderer;
 import org.oscim.theme.styles.LineStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,15 +95,15 @@ public class HairLineBucket extends RenderBucket {
         numVertices = id;
     }
 
-    public static class Renderer {
+    public static class Renderer extends StateRenderer {
         static Shader shader;
 
-        static boolean init() {
+        public Renderer(GLState glState) {
+            super(glState);
             shader = new Shader("hairline");
-            return true;
         }
 
-        public static class Shader extends GLShader {
+        public class Shader extends GLShader {
             int uMVP, uColor, uWidth, uScreen, aPos;
 
             Shader(String shaderFile) {
@@ -117,8 +118,8 @@ public class HairLineBucket extends RenderBucket {
             }
 
             public void set(GLViewport v) {
-                useProgram();
-                GLState.enableVertexArrays(aPos, GLState.DISABLED);
+                mGLState.useProgram(program);
+                mGLState.enableVertexArrays(aPos, GLState.DISABLED);
 
                 v.mvp.setAsUniform(uMVP);
 
@@ -128,8 +129,8 @@ public class HairLineBucket extends RenderBucket {
             }
         }
 
-        public static RenderBucket draw(RenderBucket l, GLViewport v) {
-            GLState.blend(true);
+        public RenderBucket draw(RenderBucket l, GLViewport v) {
+            mGLState.blend(true);
 
             Shader s = shader;
 

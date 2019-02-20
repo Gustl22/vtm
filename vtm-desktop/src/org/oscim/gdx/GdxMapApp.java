@@ -42,7 +42,7 @@ public class GdxMapApp extends GdxMap {
     public static void init() {
         // load native library
         new SharedLibraryLoader().load("vtm-jni");
-        // init globals
+        // initBucketRenderers globals
         AwtGraphics.init();
         GdxAssets.init("assets/");
         DateTimeAdapter.init(new DateTime());

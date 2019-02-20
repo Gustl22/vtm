@@ -33,7 +33,7 @@ public class GdxPoi3DTest extends GdxMapApp {
 
     @Override
     public void createLayers() {
-        MapRenderer.setBackgroundColor(0xff888888);
+        MapRenderer.getInstance().setBackgroundColor(0xff888888);
 
         TileSource ts = OSciMap4TileSource.builder()
                 .httpFactory(new OkHttpEngine.OkHttpFactory())

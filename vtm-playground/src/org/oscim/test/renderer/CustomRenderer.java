@@ -91,13 +91,13 @@ public class CustomRenderer extends LayerRenderer {
     public void render(GLViewport v) {
 
         // Use the program object
-        GLState.useProgram(mProgramObject);
+        mGLState.useProgram(mProgramObject);
 
-        GLState.blend(true);
-        GLState.test(false, false);
+        mGLState.blend(true);
+        mGLState.test(false, false);
 
         // unbind previously bound VBOs
-        GLState.bindBuffer(GL.ARRAY_BUFFER, GLState.UNBIND);
+        mGLState.bindBuffer(GL.ARRAY_BUFFER, GLState.UNBIND);
 
         // Load the vertex data
         //mVertices.position(0);
@@ -105,7 +105,7 @@ public class CustomRenderer extends LayerRenderer {
         //mVertices.position(2);
         //GL.vertexAttribPointer(hVertexPosition, 2, GL20.FLOAT, false, 4, mVertices);
 
-        GLState.enableVertexArrays(hVertexPosition, GLState.DISABLED);
+        mGLState.enableVertexArrays(hVertexPosition, GLState.DISABLED);
 
         /* apply view and projection matrices */
         // set mvp (tmp) matrix relative to mMapPosition

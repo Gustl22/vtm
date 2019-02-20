@@ -31,22 +31,26 @@ public class GLState {
     public static final int DISABLED = -1;
     public static final int UNBIND = 0;
 
-    private static final boolean[] vertexArray = {false, false};
-    private static boolean blend = false;
-    private static boolean depth = false;
-    private static boolean stencil = false;
-    private static int shader;
-    private static float[] clearColor;
-    private static int glVertexBuffer;
-    private static int glIndexBuffer;
+    private final boolean[] vertexArray = {false, false};
+    private boolean blend = false;
+    private boolean depth = false;
+    private boolean stencil = false;
+    private int shader;
+    private float[] clearColor;
+    private int glVertexBuffer;
+    private int glIndexBuffer;
 
-    private static int currentFramebufferId;
-    private static int currentTexId;
+    private int currentFramebufferId;
+    private int currentTexId;
 
-    private static int viewportWidth;
-    private static int viewportHeight;
+    private int viewportWidth;
+    private int viewportHeight;
 
-    static void init() {
+    // Quad state
+    public int mQuadIndicesID;
+    public int mQuadVerticesID;
+
+    void init() {
         vertexArray[0] = false;
         vertexArray[1] = false;
         blend = false;
@@ -63,7 +67,7 @@ public class GLState {
         gl.disable(GL.BLEND);
     }
 
-    public static boolean useProgram(int shaderProgram) {
+    public boolean useProgram(int shaderProgram) {
         if (shaderProgram < 0) {
             shader = DISABLED;
         } else if (shaderProgram != shader) {
@@ -74,7 +78,7 @@ public class GLState {
         return false;
     }
 
-    public static void blend(boolean enable) {
+    public void blend(boolean enable) {
         if (blend == enable)
             return;
 
@@ -85,7 +89,7 @@ public class GLState {
         blend = enable;
     }
 
-    public static void testDepth(boolean enable) {
+    public void testDepth(boolean enable) {
         if (depth != enable) {
 
             if (enable)
@@ -97,7 +101,7 @@ public class GLState {
         }
     }
 
-    public static void test(boolean depthTest, boolean stencilTest) {
+    public void test(boolean depthTest, boolean stencilTest) {
         if (depth != depthTest) {
 
             if (depthTest)
@@ -126,7 +130,7 @@ public class GLState {
      * 0: enable first,
      * 1: enable second.
      */
-    public static void enableVertexArrays(int va1, int va2) {
+    public void enableVertexArrays(int va1, int va2) {
         if (va1 > 1 || va2 > 1)
             log.debug("FIXME: enableVertexArrays...");
 
@@ -155,16 +159,16 @@ public class GLState {
         }
     }
 
-    public static void bindFramebuffer(int id) {
+    public void bindFramebuffer(int id) {
         gl.bindFramebuffer(GL.FRAMEBUFFER, id);
         currentFramebufferId = id;
     }
 
-    public static int getFramebuffer() {
+    public int getFramebuffer() {
         return currentFramebufferId;
     }
 
-    public static void bindTex2D(int id) {
+    public void bindTex2D(int id) {
         if (id < 0) {
             gl.bindTexture(GL.TEXTURE_2D, 0);
             currentTexId = 0;
@@ -174,11 +178,11 @@ public class GLState {
         }
     }
 
-    public static int getTexture() {
+    public int getTexture() {
         return currentTexId;
     }
 
-    public static void setClearColor(float[] color) {
+    public void setClearColor(float[] color) {
         // Workaround for artifacts at canvas resize on desktop
         if (!GLAdapter.GDX_DESKTOP_QUIRKS) {
             if (clearColor != null &&
@@ -193,7 +197,7 @@ public class GLState {
         gl.clearColor(color[0], color[1], color[2], color[3]);
     }
 
-    public static void bindBuffer(int target, int id) {
+    public void bindBuffer(int target, int id) {
         //log.debug(">> buffer {} {}", target == GL20.ARRAY_BUFFER, id);
 
         if (target == GL.ARRAY_BUFFER) {
@@ -214,7 +218,7 @@ public class GLState {
             gl.bindBuffer(target, id);
     }
 
-    public static void bindElementBuffer(int id) {
+    public void bindElementBuffer(int id) {
 
         if (glIndexBuffer == id)
             return;
@@ -225,7 +229,7 @@ public class GLState {
 
     }
 
-    public static void bindVertexBuffer(int id) {
+    public void bindVertexBuffer(int id) {
 
         if (glVertexBuffer == id)
             return;
@@ -236,17 +240,41 @@ public class GLState {
 
     }
 
-    public static void viewport(int width, int height) {
+    /**
+     * Bind VBO for a simple quad. Handy for simple custom RenderLayers
+     * Vertices: float[]{ -1, -1, -1, 1, 1, -1, 1, 1 }
+     * <p/>
+     * GL.drawArrays(GL20.TRIANGLE_STRIP, 0, 4);
+     */
+    public void bindQuadVertexVBO(int location) {
+
+        if (location >= 0) {
+            bindVertexBuffer(mQuadVerticesID);
+            enableVertexArrays(location, GLState.DISABLED);
+            gl.vertexAttribPointer(location, 2, GL.FLOAT, false, 0, 0);
+        }
+    }
+
+    /**
+     * Bind indices for rendering up to MAX_QUADS (512),
+     * ie. MAX_INDICES (512*6) in one draw call.
+     * Vertex order is 0-1-2 2-1-3
+     */
+    public void bindQuadIndicesVBO() {
+        bindElementBuffer(mQuadIndicesID);
+    }
+
+    public void viewport(int width, int height) {
         gl.viewport(0, 0, width, height);
         viewportWidth = width;
         viewportHeight = height;
     }
 
-    public static int getViewportWidth() {
+    public int getViewportWidth() {
         return viewportWidth;
     }
 
-    public static int getViewportHeight() {
+    public int getViewportHeight() {
         return viewportHeight;
     }
 }

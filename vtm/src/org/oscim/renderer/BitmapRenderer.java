@@ -38,6 +38,13 @@ public class BitmapRenderer extends BucketRenderer {
     private GLViewport.Position position = GLViewport.Position.TOP_LEFT;
     private float xOffset, yOffset;
 
+    private BitmapBucket.Renderer mBitmapBucketRenderer;
+
+    public BitmapRenderer() {
+        super();
+        mBitmapBucketRenderer = new BitmapBucket.Renderer(mGLState);
+    }
+
     /**
      * @param bitmap with dimension being power of two
      * @param width  width used
@@ -94,6 +101,6 @@ public class BitmapRenderer extends BucketRenderer {
     @Override
     public synchronized void render(GLViewport v) {
         v.useScreenCoordinates(mWidth, mHeight, position, xOffset, yOffset, COORD_SCALE);
-        BitmapBucket.Renderer.draw(buckets.get(), v, 1, 1);
+        mBitmapBucketRenderer.draw(buckets.get(), v, 1, 1);
     }
 }

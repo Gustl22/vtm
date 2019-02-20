@@ -146,7 +146,7 @@ public class Poi3DLayer extends Layer implements Map.UpdateListener, ZoomLimiter
                         pointCount = element.getNumPoints() * 2;
                         if (pointCount < 4)
                             return false; // Elements may have no points after clipping
-                        // TODO lazy init?
+                        // TODO lazy initBucketRenderers?
                         double scale = MercatorProjection.zoomLevelToScale(tile.zoomLevel);
                         double lat = MercatorProjection.tileYToLatitudeWithScale(tile.tileY, scale);
                         double modelDistPix = MercatorProjection.metersToPixelsWithScale(MODEL_DISTANCE, lat, scale);

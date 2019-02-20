@@ -144,7 +144,7 @@ public class ThemeStylerActivity extends BaseMapActivity implements OnSeekBarCha
         c.changed = false;
 
         if (modArea)
-            MapRenderer.setBackgroundColor(modColor(t.getMapBackground(), c));
+            MapRenderer.getInstance().setBackgroundColor(modColor(t.getMapBackground(), c));
 
         mMap.render();
     }

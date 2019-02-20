@@ -45,8 +45,11 @@ class TextRenderer extends BucketRenderer {
 
     private final Worker mWorker;
 
+    private final TextureBucket.Renderer mTextureBucketRenderer;
+
     public TextRenderer(Worker worker) {
         mWorker = worker;
+        mTextureBucketRenderer = new TextureBucket.Renderer(mGLState);
     }
 
     long lastDraw = 0;
@@ -74,17 +77,17 @@ class TextRenderer extends BucketRenderer {
 
     @Override
     public synchronized void render(GLViewport v) {
-        GLState.test(false, false);
+        mGLState.test(false, false);
         //Debug.draw(pos, layers);
 
-        buckets.vbo.bind();
+        buckets.vbo.bind(mGLState);
 
         float scale = (float) (v.pos.scale / mMapPosition.scale);
 
         setMatrix(v, false);
 
         for (RenderBucket l = buckets.get(); l != null; )
-            l = TextureBucket.Renderer.draw(l, v, scale);
+            l = mTextureBucketRenderer.draw(l, v, scale);
     }
 
 }

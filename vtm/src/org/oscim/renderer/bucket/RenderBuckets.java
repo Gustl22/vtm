@@ -20,6 +20,7 @@ import org.oscim.backend.GL;
 import org.oscim.core.Tile;
 import org.oscim.layers.tile.MapTile.TileData;
 import org.oscim.renderer.BufferObject;
+import org.oscim.renderer.GLState;
 import org.oscim.renderer.MapRenderer;
 import org.oscim.theme.styles.AreaStyle;
 import org.oscim.theme.styles.CircleStyle;
@@ -85,7 +86,11 @@ public class RenderBuckets extends TileData {
 
     private RenderBucket mCurBucket;
 
+    private final GLState mGLState;
+
     public RenderBuckets() {
+        // TODO use valid glstate
+        mGLState = MapRenderer.getInstance().getGLState();
     }
 
     /**
@@ -337,10 +342,10 @@ public class RenderBuckets extends TileData {
 
     public void bind() {
         if (vbo != null)
-            vbo.bind();
+            vbo.bind(mGLState);
 
         if (ibo != null)
-            ibo.bind();
+            ibo.bind(mGLState);
 
     }
 
@@ -418,14 +423,14 @@ public class RenderBuckets extends TileData {
             vbo = BufferObject.get(GL.ARRAY_BUFFER, vboSize);
 
         // Set VBO data to READ mode
-        vbo.loadBufferData(vboData.flip(), vboSize * SHORT_BYTES);
+        vbo.loadBufferData(mGLState, vboData.flip(), vboSize * SHORT_BYTES);
 
         if (iboSize > 0) {
             if (ibo == null)
                 ibo = BufferObject.get(GL.ELEMENT_ARRAY_BUFFER, iboSize);
 
             // Set IBO data to READ mode
-            ibo.loadBufferData(iboData.flip(), iboSize * SHORT_BYTES);
+            ibo.loadBufferData(mGLState, iboData.flip(), iboSize * SHORT_BYTES);
         }
 
         return true;
@@ -436,16 +441,5 @@ public class RenderBuckets extends TileData {
     static {
         short s = (short) (Tile.SIZE * COORD_SCALE);
         fillShortCoords = new short[]{0, s, s, s, 0, 0, s, 0};
-    }
-
-    public static void initRenderer() {
-        LineBucket.Renderer.init();
-        LineTexBucket.Renderer.init();
-        PolygonBucket.Renderer.init();
-        TextureBucket.Renderer.init();
-        BitmapBucket.Renderer.init();
-        MeshBucket.Renderer.init();
-        HairLineBucket.Renderer.init();
-        CircleBucket.Renderer.init();
     }
 }

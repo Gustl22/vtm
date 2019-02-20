@@ -31,7 +31,7 @@ public class AnimatorTest extends GdxMapApp {
 
     @Override
     public void createLayers() {
-        MapRenderer.setBackgroundColor(0xff000000);
+        MapRenderer.getInstance().setBackgroundColor(0xff000000);
 
         TileSource tileSource = DefaultSources.OPENSTREETMAP
                 .httpFactory(new OkHttpEngine.OkHttpFactory())

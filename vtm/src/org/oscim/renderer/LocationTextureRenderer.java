@@ -293,12 +293,12 @@ public class LocationTextureRenderer extends BucketRenderer {
     }
 
     private void renderAccuracyCircle(GLViewport v) {
-        GLState.useProgram(shaderProgramNumber);
-        GLState.blend(true);
-        GLState.test(false, false);
+        mGLState.useProgram(shaderProgramNumber);
+        mGLState.blend(true);
+        mGLState.test(false, false);
 
-        GLState.enableVertexArrays(hVertexPosition, GLState.DISABLED);
-        MapRenderer.bindQuadVertexVBO(hVertexPosition/*, true*/);
+        mGLState.enableVertexArrays(hVertexPosition, GLState.DISABLED);
+        mGLState.bindQuadVertexVBO(hVertexPosition/*, true*/);
 
         float radius = 10;
         boolean viewShed = false;

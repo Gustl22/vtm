@@ -47,7 +47,7 @@ import java.util.List;
 public class IOSPathLayerTest extends GdxMap {
 
     public static void init() {
-        // init globals
+        // initBucketRenderers globals
         IosGraphics.init();
         GdxAssets.init("assets/");
     }

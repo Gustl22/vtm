@@ -57,7 +57,7 @@ public final class BufferObject extends Inlist<BufferObject> {
     /**
      * @param newSize size required in bytes
      */
-    public void loadBufferData(Buffer buf, int newSize) {
+    public void loadBufferData(GLState glState, Buffer buf, int newSize) {
         boolean clear = false;
 
         if (buf.position() != 0) {
@@ -65,7 +65,7 @@ public final class BufferObject extends Inlist<BufferObject> {
             buf.flip();
         }
 
-        GLState.bindBuffer(target, id);
+        glState.bindBuffer(target, id);
 
         /* reuse memory allocated for vbo when possible and allocated
          * memory is less then four times the new data */
@@ -80,12 +80,12 @@ public final class BufferObject extends Inlist<BufferObject> {
         }
     }
 
-    public void bind() {
-        GLState.bindBuffer(target, id);
+    public void bind(GLState glState) {
+        glState.bindBuffer(target, id);
     }
 
-    public void unbind() {
-        GLState.bindBuffer(target, GLState.UNBIND);
+    public void unbind(GLState glState) {
+        glState.bindBuffer(target, GLState.UNBIND);
     }
 
     // ---------------------------- pool ----------------------------

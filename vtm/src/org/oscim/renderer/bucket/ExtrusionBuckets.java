@@ -22,6 +22,7 @@ import org.oscim.core.GeometryBuffer;
 import org.oscim.layers.tile.MapTile;
 import org.oscim.layers.tile.MapTile.TileData;
 import org.oscim.renderer.BufferObject;
+import org.oscim.renderer.GLState;
 import org.oscim.renderer.MapRenderer;
 import org.oscim.utils.pool.Inlist;
 import org.slf4j.Logger;
@@ -45,10 +46,13 @@ public class ExtrusionBuckets extends TileData {
     public BufferObject ibo;
     public BufferObject vbo;
 
+    private GLState mGLState;
+
     public ExtrusionBuckets(MapTile tile) {
         zoomLevel = tile.zoomLevel;
         x = tile.x;
         y = tile.y;
+        mGLState = MapRenderer.getInstance().getGLState();
     }
 
     /**
@@ -158,7 +162,7 @@ public class ExtrusionBuckets extends TileData {
             size = pos * 2;
         }
         ibo = BufferObject.get(GL.ELEMENT_ARRAY_BUFFER, size);
-        ibo.loadBufferData(iboData.flip(), size);
+        ibo.loadBufferData(mGLState, iboData.flip(), size);
 
         size = sumVertices * 4 * 2;
         if (vboData.position() != sumVertices * 4) {
@@ -168,7 +172,7 @@ public class ExtrusionBuckets extends TileData {
         }
 
         vbo = BufferObject.get(GL.ARRAY_BUFFER, size);
-        vbo.loadBufferData(vboData.flip(), size);
+        vbo.loadBufferData(mGLState, vboData.flip(), size);
 
         compiled = true;
 

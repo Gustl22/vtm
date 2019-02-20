@@ -47,7 +47,7 @@ public class ExternalRenderThemeTest extends GdxMapApp {
         try {
             IRenderTheme theme = ThemeLoader.load(name);
             mapLayer.setRenderTheme(theme);
-            MapRenderer.setBackgroundColor(theme.getMapBackground());
+            MapRenderer.getInstance().setBackgroundColor(theme.getMapBackground());
         } catch (ThemeException e) {
             e.printStackTrace();
         }
@@ -82,7 +82,7 @@ public class ExternalRenderThemeTest extends GdxMapApp {
             // ThemeLoader.load("themes/elevate/theme.xml");
             // IRenderTheme theme = ThemeLoader.load("themes/vmap/theme.xml");
             l.setRenderTheme(theme);
-            MapRenderer.setBackgroundColor(theme.getMapBackground());
+            MapRenderer.getInstance().setBackgroundColor(theme.getMapBackground());
         } catch (ThemeException e) {
             e.printStackTrace();
         }

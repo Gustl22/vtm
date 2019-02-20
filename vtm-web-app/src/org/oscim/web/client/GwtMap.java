@@ -81,8 +81,8 @@ class GwtMap extends GdxMap {
         CanvasAdapter.dpi = (int) (GwtGraphics.getDevicePixelRatioJSNI() * CanvasAdapter.DEFAULT_DPI);
         Tile.SIZE = Tile.calculateTileSize();
 
-        log.debug("GLAdapter.init");
-        MapRenderer.setBackgroundColor(0xffffff);
+        log.debug("GLAdapter.initBucketRenderers");
+        MapRenderer.getInstance().setBackgroundColor(0xffffff);
         //Gdx.app.setLogLevel(Application.LOG_DEBUG);
 
         super.create();

@@ -69,7 +69,7 @@ public class RuleVisitorTest extends GdxMapApp {
 
     @Override
     public void createLayers() {
-        MapRenderer.setBackgroundColor(0xf0f0f0);
+        MapRenderer.getInstance().setBackgroundColor(0xf0f0f0);
 
         TileSource ts = OSciMap4TileSource.builder()
                 .httpFactory(new OkHttpEngine.OkHttpFactory())

@@ -21,6 +21,7 @@ import org.oscim.backend.GL;
 import org.oscim.backend.canvas.Color;
 import org.oscim.core.Tile;
 import org.oscim.renderer.GLMatrix;
+import org.oscim.renderer.GLState;
 import org.oscim.renderer.GLViewport;
 import org.oscim.renderer.MapRenderer;
 import org.oscim.renderer.bucket.BitmapBucket;
@@ -32,6 +33,7 @@ import org.oscim.renderer.bucket.MeshBucket;
 import org.oscim.renderer.bucket.PolygonBucket;
 import org.oscim.renderer.bucket.RenderBucket;
 import org.oscim.renderer.bucket.RenderBuckets;
+import org.oscim.renderer.bucket.TextureBucket;
 import org.oscim.utils.FastMath;
 
 import static org.oscim.backend.GLAdapter.gl;
@@ -61,6 +63,30 @@ public class VectorTileRenderer extends TileRenderer {
      * tile twice per frame.
      */
     protected int mDrawSerial;
+
+    private PolygonBucket.Renderer mPolygonBucketRenderer;
+    private LineBucket.Renderer mLineBucketRenderer;
+    private LineTexBucket.Renderer mLineTexBucketRenderer;
+    private MeshBucket.Renderer mMeshBucketRenderer;
+    private HairLineBucket.Renderer mHairLineBucketRenderer;
+    private BitmapBucket.Renderer mBitmapBucketRenderer;
+    private TextureBucket.Renderer mTextureBucketRenderer;
+    private CircleBucket.Renderer mCircleBucketRenderer;
+
+    public VectorTileRenderer() {
+        initBucketRenderers(MapRenderer.getInstance().getGLState());
+    }
+
+    public void initBucketRenderers(GLState glState) {
+        mPolygonBucketRenderer = new PolygonBucket.Renderer(glState);
+        mLineBucketRenderer = new LineBucket.Renderer(glState);
+        mLineTexBucketRenderer = new LineTexBucket.Renderer(glState);
+        mMeshBucketRenderer = new MeshBucket.Renderer(glState);
+        mHairLineBucketRenderer = new HairLineBucket.Renderer(glState);
+        mBitmapBucketRenderer = new BitmapBucket.Renderer(glState);
+        mTextureBucketRenderer = new TextureBucket.Renderer(glState);
+        mCircleBucketRenderer = new CircleBucket.Renderer(glState);
+    }
 
     @Override
     public synchronized void render(GLViewport v) {
@@ -195,34 +221,34 @@ public class VectorTileRenderer extends TileRenderer {
 
         buckets.bind();
 
-        PolygonBucket.Renderer.clip(mClipMVP, mClipMode);
+        mPolygonBucketRenderer.clip(mClipMVP, mClipMode);
         boolean first = true;
 
         for (RenderBucket b = buckets.get(); b != null; ) {
             switch (b.type) {
                 case POLYGON:
-                    b = PolygonBucket.Renderer.draw(b, v, zoomDiv, first);
+                    b = mPolygonBucketRenderer.draw(b, v, zoomDiv, first);
                     first = false;
                     /* set test for clip to tile region */
                     gl.stencilFunc(GL.EQUAL, 0x80, 0x80);
                     break;
                 case LINE:
-                    b = LineBucket.Renderer.draw(b, v, scale, buckets);
+                    b = mLineBucketRenderer.draw(b, v, scale, buckets);
                     break;
                 case TEXLINE:
-                    b = LineTexBucket.Renderer.draw(b, v, zoomDiv, buckets);
+                    b = mLineTexBucketRenderer.draw(b, v, zoomDiv, buckets);
                     break;
                 case MESH:
-                    b = MeshBucket.Renderer.draw(b, v);
+                    b = mMeshBucketRenderer.draw(b, v);
                     break;
                 case HAIRLINE:
-                    b = HairLineBucket.Renderer.draw(b, v);
+                    b = mHairLineBucketRenderer.draw(b, v);
                     break;
                 case BITMAP:
-                    b = BitmapBucket.Renderer.draw(b, v, 1, mLayerAlpha);
+                    b = mBitmapBucketRenderer.draw(b, v, 1, mLayerAlpha);
                     break;
                 case CIRCLE:
-                    b = CircleBucket.Renderer.draw(b, v);
+                    b = mCircleBucketRenderer.draw(b, v);
                     break;
                 default:
                     /* just in case */
@@ -237,11 +263,11 @@ public class VectorTileRenderer extends TileRenderer {
 
         if (debugOverdraw) {
             if (tile.zoomLevel > v.pos.zoomLevel)
-                PolygonBucket.Renderer.drawOver(mClipMVP, Color.BLUE, 0.5f);
+                mPolygonBucketRenderer.drawOver(mClipMVP, Color.BLUE, 0.5f);
             else if (tile.zoomLevel < v.pos.zoomLevel)
-                PolygonBucket.Renderer.drawOver(mClipMVP, Color.RED, 0.5f);
+                mPolygonBucketRenderer.drawOver(mClipMVP, Color.RED, 0.5f);
             else
-                PolygonBucket.Renderer.drawOver(mClipMVP, Color.GREEN, 0.5f);
+                mPolygonBucketRenderer.drawOver(mClipMVP, Color.GREEN, 0.5f);
 
             return;
         }
@@ -262,14 +288,14 @@ public class VectorTileRenderer extends TileRenderer {
         long dTime = MapRenderer.frametime - fadeTime;
 
         if (mOverdrawColor == 0 || dTime > FADE_TIME) {
-            PolygonBucket.Renderer.drawOver(mClipMVP, 0, 1);
+            mPolygonBucketRenderer.drawOver(mClipMVP, 0, 1);
             return;
         }
 
         float fade = 1 - dTime / FADE_TIME;
-        PolygonBucket.Renderer.drawOver(mClipMVP, mOverdrawColor, fade * fade);
+        mPolygonBucketRenderer.drawOver(mClipMVP, mOverdrawColor, fade * fade);
 
-        MapRenderer.animate();
+        MapRenderer.getInstance().animate();
     }
 
     protected boolean drawChildren(MapTile t, GLViewport v) {

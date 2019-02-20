@@ -45,7 +45,7 @@ public class LineRenderTest extends GdxMapApp {
 
     @Override
     public void createLayers() {
-        MapRenderer.setBackgroundColor(0xff000000);
+        MapRenderer.getInstance().setBackgroundColor(0xff000000);
 
         mMap.setMapPosition(0, 0, 1 << 4);
 

@@ -69,12 +69,33 @@ public class BucketRenderer extends LayerRenderer {
      */
     public final RenderBuckets buckets;
 
+    protected boolean mInititialzed;
+
+    private PolygonBucket.Renderer mPolygonBucketRenderer;
+    private LineBucket.Renderer mLineBucketRenderer;
+    private LineTexBucket.Renderer mLineTexBucketRenderer;
+    private MeshBucket.Renderer mMeshBucketRenderer;
+    private HairLineBucket.Renderer mHairLineBucketRenderer;
+    private BitmapBucket.Renderer mBitmapBucketRenderer;
+    private TextureBucket.Renderer mTextureBucketRenderer;
+    private CircleBucket.Renderer mCircleBucketRenderer;
+
     public BucketRenderer() {
         buckets = new RenderBuckets();
         mMapPosition = new MapPosition();
+        initBucketRenderers(MapRenderer.getInstance().getGLState());
     }
 
-    protected boolean mInititialzed;
+    public void initBucketRenderers(GLState glState) {
+        mPolygonBucketRenderer = new PolygonBucket.Renderer(glState);
+        mLineBucketRenderer = new LineBucket.Renderer(glState);
+        mLineTexBucketRenderer = new LineTexBucket.Renderer(glState);
+        mMeshBucketRenderer = new MeshBucket.Renderer(glState);
+        mHairLineBucketRenderer = new HairLineBucket.Renderer(glState);
+        mBitmapBucketRenderer = new BitmapBucket.Renderer(glState);
+        mTextureBucketRenderer = new TextureBucket.Renderer(glState);
+        mCircleBucketRenderer = new CircleBucket.Renderer(glState);
+    }
 
     /**
      * Default implementation:
@@ -96,8 +117,8 @@ public class BucketRenderer extends LayerRenderer {
     public synchronized void render(GLViewport v) {
         MapPosition layerPos = mMapPosition;
 
-        GLState.test(false, false);
-        GLState.blend(true);
+        mGLState.test(false, false);
+        mGLState.blend(true);
 
         float div = (float) (v.pos.scale / layerPos.scale);
 
@@ -116,34 +137,34 @@ public class BucketRenderer extends LayerRenderer {
 
             switch (b.type) {
                 case POLYGON:
-                    b = PolygonBucket.Renderer.draw(b, v, 1, true);
+                    b = mPolygonBucketRenderer.draw(b, v, 1, true);
                     break;
                 case LINE:
-                    b = LineBucket.Renderer.draw(b, v, div, buckets);
+                    b = mLineBucketRenderer.draw(b, v, div, buckets);
                     break;
                 case TEXLINE:
-                    b = LineTexBucket.Renderer.draw(b, v,
+                    b = mLineTexBucketRenderer.draw(b, v,
                             FastMath.pow(layerPos.zoomLevel - v.pos.zoomLevel) * (float) layerPos.getZoomScale(),
                             buckets);
                     break;
                 case MESH:
-                    b = MeshBucket.Renderer.draw(b, v);
+                    b = mMeshBucketRenderer.draw(b, v);
                     break;
                 case HAIRLINE:
-                    b = HairLineBucket.Renderer.draw(b, v);
+                    b = mHairLineBucketRenderer.draw(b, v);
                     break;
                 case BITMAP:
-                    b = BitmapBucket.Renderer.draw(b, v, 1, 1);
+                    b = mBitmapBucketRenderer.draw(b, v, 1, 1);
                     break;
                 case SYMBOL:
                     if (project) {
                         project = false;
                         setMatrix(v, project);
                     }
-                    b = TextureBucket.Renderer.draw(b, v, div);
+                    b = mTextureBucketRenderer.draw(b, v, div);
                     break;
                 case CIRCLE:
-                    b = CircleBucket.Renderer.draw(b, v);
+                    b = mCircleBucketRenderer.draw(b, v);
                     break;
                 default:
                     log.error("invalid bucket {}", b.type);

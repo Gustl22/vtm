@@ -26,6 +26,7 @@ import org.oscim.renderer.GLShader;
 import org.oscim.renderer.GLState;
 import org.oscim.renderer.GLUtils;
 import org.oscim.renderer.GLViewport;
+import org.oscim.renderer.StateRenderer;
 import org.oscim.renderer.bucket.VertexData.Chunk;
 import org.oscim.theme.styles.AreaStyle;
 import org.oscim.utils.ColorUtil;
@@ -147,12 +148,12 @@ public class MeshBucket extends RenderBucket {
         tess.dispose();
     }
 
-    public static class Renderer {
-        static Shader shader;
+    public static class Renderer extends StateRenderer {
+        Shader shader;
 
-        static boolean init() {
+        public Renderer(GLState glState) {
+            super(glState);
             shader = new Shader("mesh_layer_2D");
-            return true;
         }
 
         static class Shader extends GLShader {
@@ -169,13 +170,13 @@ public class MeshBucket extends RenderBucket {
             }
         }
 
-        public static RenderBucket draw(RenderBucket l, GLViewport v) {
-            GLState.blend(true);
+        public RenderBucket draw(RenderBucket l, GLViewport v) {
+            mGLState.blend(true);
 
             Shader s = shader;
 
-            s.useProgram();
-            GLState.enableVertexArrays(s.aPos, GLState.DISABLED);
+            mGLState.useProgram(s.program);
+            mGLState.enableVertexArrays(s.aPos, GLState.DISABLED);
 
             v.mvp.setAsUniform(s.uMVP);
 
@@ -225,12 +226,12 @@ public class MeshBucket extends RenderBucket {
 
         private static final int OPAQUE = 0xff000000;
 
-        static void setColor(AreaStyle a, Shader s, MapPosition pos) {
+        void setColor(AreaStyle a, Shader s, MapPosition pos) {
             float fade = a.getFade(pos.scale);
             float blend = a.getBlend(pos.scale);
 
             if (fade < 1.0f) {
-                GLState.blend(true);
+                mGLState.blend(true);
                 GLUtils.setColor(s.uColor, a.color, fade);
             } else if (blend > 0.0f) {
                 if (blend == 1.0f)
@@ -240,7 +241,7 @@ public class MeshBucket extends RenderBucket {
                             a.blendColor, blend);
             } else {
                 /* test if color contains alpha */
-                GLState.blend((a.color & OPAQUE) != OPAQUE);
+                mGLState.blend((a.color & OPAQUE) != OPAQUE);
                 GLUtils.setColor(s.uColor, a.color, 1);
             }
         }

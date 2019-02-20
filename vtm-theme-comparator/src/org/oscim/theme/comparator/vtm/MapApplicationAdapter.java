@@ -163,7 +163,7 @@ public class MapApplicationAdapter extends ApplicationAdapter {
 
     @Override
     public void render() {
-        GLState.viewport(width, height);
+        mapRenderer.getGLState().viewport(width, height);
 
         try {
             mapRenderer.onDrawFrame();

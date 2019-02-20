@@ -245,7 +245,7 @@ public class TileManager {
      */
     public boolean update(MapPosition pos) {
 
-        // FIXME cant expect init to be called otherwise
+        // FIXME cant expect initBucketRenderers to be called otherwise
         // Should use some onLayerAttached callback instead.
         if (mNewTiles == null || mNewTiles.tiles.length == 0) {
             mPrevZoomlevel = pos.zoomLevel;

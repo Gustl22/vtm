@@ -28,6 +28,12 @@ public abstract class LayerRenderer {
      */
     boolean isInitialized;
 
+    public final GLState mGLState;
+
+    public LayerRenderer() {
+        mGLState = MapRenderer.getInstance().getGLState();
+    }
+
     /**
      * Set 'ready for render' state when layer data is ready for rendering.
      *

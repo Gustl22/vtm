@@ -41,7 +41,7 @@ public class ThemeTest extends GdxMapApp {
 
         l.setRenderTheme(new RenderTheme());
 
-        MapRenderer.setBackgroundColor(0xffcccccc);
+        MapRenderer.getInstance().setBackgroundColor(0xffcccccc);
 
         // mMap.getLayers().add(new LabelLayer(mMap,
         // mMapLayer.getTileLayer()));

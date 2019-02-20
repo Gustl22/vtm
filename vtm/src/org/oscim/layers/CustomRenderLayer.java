@@ -20,6 +20,7 @@ import org.oscim.core.MapPosition;
 import org.oscim.event.Event;
 import org.oscim.map.Map;
 import org.oscim.map.Map.UpdateListener;
+import org.oscim.renderer.GLState;
 import org.oscim.renderer.GLViewport;
 import org.oscim.renderer.LayerRenderer;
 import org.slf4j.Logger;

@@ -75,10 +75,6 @@ public abstract class GLShader {
         return loc;
     }
 
-    public boolean useProgram() {
-        return GLState.useProgram(program);
-    }
-
     public static int loadShader(String file) {
         return loadShaderDirective(file, null);
     }

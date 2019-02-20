@@ -26,6 +26,7 @@ import org.oscim.renderer.GLState;
 import org.oscim.renderer.GLUtils;
 import org.oscim.renderer.GLViewport;
 import org.oscim.renderer.MapRenderer;
+import org.oscim.renderer.StateRenderer;
 import org.oscim.theme.styles.LineStyle;
 import org.oscim.utils.FastMath;
 import org.slf4j.Logger;
@@ -38,7 +39,6 @@ import java.nio.ShortBuffer;
 import static org.oscim.backend.GLAdapter.gl;
 import static org.oscim.renderer.MapRenderer.COORD_SCALE;
 import static org.oscim.renderer.MapRenderer.MAX_INDICES;
-import static org.oscim.renderer.MapRenderer.bindQuadIndicesVBO;
 
 /**
  * RenderElement for textured or stippled lines
@@ -265,8 +265,8 @@ public final class LineTexBucket extends LineBucket {
         }
     }
 
-    public static final class Renderer {
-        private static Shader shader;
+    public static final class Renderer extends StateRenderer {
+        private Shader shader;
 
         /* factor to normalize extrusion vector and scale to coord scale */
         private static final float COORD_SCALE_BY_DIR_SCALE =
@@ -274,7 +274,12 @@ public final class LineTexBucket extends LineBucket {
 
         private static int mVertexFlipID;
 
-        public static void init() {
+        public Renderer(GLState glState) {
+            super(glState);
+            init();
+        }
+
+        public void init() {
 
             shader = new Shader("linetex_layer_tex");
             //shader = new Shader("linetex_layer");
@@ -295,10 +300,10 @@ public final class LineTexBucket extends LineBucket {
             ShortBuffer sbuf = buf.asShortBuffer();
 
             //GL.bindBuffer(GL20.ARRAY_BUFFER, mVertexFlipID);
-            GLState.bindVertexBuffer(mVertexFlipID);
+            mGLState.bindVertexBuffer(mVertexFlipID);
             gl.bufferData(GL.ARRAY_BUFFER, flip.length, sbuf,
                     GL.STATIC_DRAW);
-            GLState.bindVertexBuffer(GLState.UNBIND);
+            mGLState.bindVertexBuffer(GLState.UNBIND);
 
             //    mTexID = new int[10];
             //    byte[] stipple = new byte[40];
@@ -312,7 +317,7 @@ public final class LineTexBucket extends LineBucket {
 
         //static TextureItem tex;
 
-        public static int loadStippleTexture(byte[] stipple) {
+        public int loadStippleTexture(byte[] stipple) {
             int sum = 0;
             for (byte flip : stipple)
                 sum += flip;
@@ -337,7 +342,7 @@ public final class LineTexBucket extends LineBucket {
                 pos += flip;
             }
 
-            return GLUtils.loadTexture(pixel, sum, 1, GL.ALPHA,
+            return GLUtils.loadTexture(mGLState, pixel, sum, 1, GL.ALPHA,
                     GL.LINEAR, GL.LINEAR,
                     GL.REPEAT, GL.REPEAT);
         }
@@ -348,13 +353,13 @@ public final class LineTexBucket extends LineBucket {
         /* offset for line length, unused; skip first 4 units */
         private static final int LEN_OFFSET = 4 * RenderBuckets.SHORT_BYTES;
 
-        public static RenderBucket draw(RenderBucket b, GLViewport v,
-                                        float div, RenderBuckets buckets) {
+        public RenderBucket draw(RenderBucket b, GLViewport v,
+                                 float div, RenderBuckets buckets) {
 
-            GLState.blend(true);
-            shader.useProgram();
+            mGLState.blend(true);
+            mGLState.useProgram(shader.program);
 
-            GLState.enableVertexArrays(GLState.DISABLED, GLState.DISABLED);
+            mGLState.enableVertexArrays(GLState.DISABLED, GLState.DISABLED);
 
             int aLen0 = shader.aLen0;
             int aLen1 = shader.aLen1;
@@ -370,13 +375,13 @@ public final class LineTexBucket extends LineBucket {
 
             v.mvp.setAsUniform(shader.uMVP);
 
-            bindQuadIndicesVBO();
+            mGLState.bindQuadIndicesVBO();
 
-            GLState.bindVertexBuffer(mVertexFlipID);
+            mGLState.bindVertexBuffer(mVertexFlipID);
             gl.vertexAttribPointer(shader.aFlip, 1,
                     GL.BYTE, false, 0, 0);
 
-            buckets.vbo.bind();
+            buckets.vbo.bind(mGLState);
 
             float scale = (float) v.pos.getZoomScale();
             float s = scale / div;

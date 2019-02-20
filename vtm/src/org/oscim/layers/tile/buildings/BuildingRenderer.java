@@ -91,7 +91,7 @@ public class BuildingRenderer extends ExtrusionRenderer {
 
                 mShow = true;
                 mAlpha = clamp((now - mAnimTime) / mFadeInTime, 0, 1);
-                MapRenderer.animate();
+                MapRenderer.getInstance().animate();
             }
         } else {
             if (mAlpha > 0) {
@@ -101,7 +101,7 @@ public class BuildingRenderer extends ExtrusionRenderer {
 
                 mShow = false;
                 mAlpha = clamp(1 - (now - mAnimTime) / mFadeOutTime, 0, 1);
-                MapRenderer.animate();
+                MapRenderer.getInstance().animate();
             }
         }
 
@@ -189,7 +189,7 @@ public class BuildingRenderer extends ExtrusionRenderer {
 
         /* load more tiles on next frame */
         if (compiled)
-            MapRenderer.animate();
+            MapRenderer.getInstance().animate();
 
         mBucketsCnt = activeTiles;
 

@@ -24,6 +24,7 @@ import org.oscim.renderer.GLShader;
 import org.oscim.renderer.GLState;
 import org.oscim.renderer.GLUtils;
 import org.oscim.renderer.GLViewport;
+import org.oscim.renderer.StateRenderer;
 import org.oscim.theme.styles.CircleStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,15 +84,15 @@ public class CircleBucket extends RenderBucket {
         }
     }
 
-    public static class Renderer {
-        static Shader shader;
+    public static class Renderer extends StateRenderer {
+        Shader shader;
 
-        static boolean init() {
+        public Renderer(GLState glState) {
+            super(glState);
             shader = new Shader(GLAdapter.CIRCLE_QUADS ? "circle_quad" : "circle_point");
-            return true;
         }
 
-        public static class Shader extends GLShader {
+        public class Shader extends GLShader {
             int uMVP, uFill, uRadius, uStroke, uWidth, aPos;
 
             Shader(String shaderFile) {
@@ -116,15 +117,15 @@ public class CircleBucket extends RenderBucket {
             }
 
             public void set(GLViewport v) {
-                useProgram();
-                GLState.enableVertexArrays(aPos, GLState.DISABLED);
+                mGLState.useProgram(program);
+                mGLState.enableVertexArrays(aPos, GLState.DISABLED);
 
                 v.mvp.setAsUniform(uMVP);
             }
         }
 
-        public static RenderBucket draw(RenderBucket b, GLViewport v) {
-            GLState.blend(true);
+        public RenderBucket draw(RenderBucket b, GLViewport v) {
+            mGLState.blend(true);
 
             Shader s = shader;
 

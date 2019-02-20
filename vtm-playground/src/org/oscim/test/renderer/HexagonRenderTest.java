@@ -99,7 +99,7 @@ public class HexagonRenderTest extends GdxMapApp {
             buf.put(vertices);
 
             mVBO = BufferObject.get(GL.ARRAY_BUFFER, 0);
-            mVBO.loadBufferData(buf.flip(), 12 * 4);
+            mVBO.loadBufferData(mGLState, buf.flip(), 12 * 4);
 
             setReady(true);
         }
@@ -108,18 +108,18 @@ public class HexagonRenderTest extends GdxMapApp {
         public void render(GLViewport v) {
 
             // Use the program object
-            GLState.useProgram(mProgramObject);
+            mGLState.useProgram(mProgramObject);
 
-            GLState.blend(true);
-            GLState.test(false, false);
+            mGLState.blend(true);
+            mGLState.test(false, false);
 
             // bind VBO data
-            mVBO.bind();
+            mVBO.bind(mGLState);
 
             // set VBO vertex layout
             gl.vertexAttribPointer(hVertexPosition, 2, GL.FLOAT, false, 0, 0);
 
-            GLState.enableVertexArrays(hVertexPosition, GLState.DISABLED);
+            mGLState.enableVertexArrays(hVertexPosition, GLState.DISABLED);
 
             /* apply view and projection matrices */
             // set mvp (tmp) matrix relative to mMapPosition

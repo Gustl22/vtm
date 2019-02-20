@@ -117,7 +117,7 @@ public class HairLineTest extends GdxMapApp {
 
     @Override
     public void createLayers() {
-        MapRenderer.setBackgroundColor(Color.BLACK);
+        MapRenderer.getInstance().setBackgroundColor(Color.BLACK);
         mMap.layers().add(new GenericLayer(mMap, new Renderer()));
 
     }

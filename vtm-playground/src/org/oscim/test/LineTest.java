@@ -8,6 +8,7 @@ import org.oscim.core.GeometryBuffer;
 import org.oscim.gdx.GdxMapApp;
 import org.oscim.layers.GenericLayer;
 import org.oscim.renderer.BucketRenderer;
+import org.oscim.renderer.GLState;
 import org.oscim.renderer.GLViewport;
 import org.oscim.renderer.MapRenderer;
 import org.oscim.renderer.bucket.LineBucket;
@@ -97,7 +98,7 @@ public class LineTest extends GdxMapApp {
 
                 angle = Gdx.input.getX() / 2f % 360;
 
-                MapRenderer.animate();
+                mMapRenderer.animate();
             }
         }));
     }

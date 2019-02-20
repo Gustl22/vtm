@@ -1199,7 +1199,7 @@ class Partition {
         }
         coverSplitArea = coverSplit.calcRectVolume();
 
-        /* init node - FIXME needed? */
+        /* initBucketRenderers node - FIXME needed? */
         node.count = 0;
         node.level = -1;
     }

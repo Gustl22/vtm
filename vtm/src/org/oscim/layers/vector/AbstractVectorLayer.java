@@ -80,7 +80,7 @@ public abstract class AbstractVectorLayer<T> extends Layer implements UpdateList
 
     protected abstract void processFeatures(Task t, Box b);
 
-    protected static class Task {
+    protected class Task {
         public final RenderBuckets buckets = new RenderBuckets();
         public final MapPosition position = new MapPosition();
     }

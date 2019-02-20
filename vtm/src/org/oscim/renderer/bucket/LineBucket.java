@@ -26,6 +26,7 @@ import org.oscim.renderer.GLShader;
 import org.oscim.renderer.GLState;
 import org.oscim.renderer.GLUtils;
 import org.oscim.renderer.GLViewport;
+import org.oscim.renderer.StateRenderer;
 import org.oscim.theme.styles.LineStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -505,32 +506,7 @@ public class LineBucket extends RenderBucket {
         vertices.add(ox, oy, (short) dx, (short) dy);
     }
 
-    static class Shader extends GLShader {
-        int uMVP, uFade, uWidth, uColor, uMode, uHeight, aPos;
-
-        Shader(String shaderFile) {
-            if (!create(shaderFile))
-                return;
-            uMVP = getUniform("u_mvp");
-            uFade = getUniform("u_fade");
-            uWidth = getUniform("u_width");
-            uColor = getUniform("u_color");
-            uMode = getUniform("u_mode");
-            uHeight = getUniform("u_height");
-            aPos = getAttrib("a_pos");
-        }
-
-        @Override
-        public boolean useProgram() {
-            if (super.useProgram()) {
-                GLState.enableVertexArrays(aPos, GLState.DISABLED);
-                return true;
-            }
-            return false;
-        }
-    }
-
-    public static final class Renderer {
+    public static final class Renderer extends StateRenderer {
         /* TODO:
          * http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter22.html */
 
@@ -545,10 +521,39 @@ public class LineBucket extends RenderBucket {
         private static final int SHADER_FLAT = 1;
         private static final int SHADER_PROJ = 0;
 
-        public static int mTexID;
-        private static Shader[] shaders = {null, null};
+        private int mTexID;
+        private Shader[] shaders = {null, null};
 
-        static boolean init() {
+        class Shader extends GLShader {
+            int uMVP, uFade, uWidth, uColor, uMode, uHeight, aPos;
+
+            Shader(String shaderFile) {
+                if (!create(shaderFile))
+                    return;
+                uMVP = getUniform("u_mvp");
+                uFade = getUniform("u_fade");
+                uWidth = getUniform("u_width");
+                uColor = getUniform("u_color");
+                uMode = getUniform("u_mode");
+                uHeight = getUniform("u_height");
+                aPos = getAttrib("a_pos");
+            }
+
+            public boolean useProgram() {
+                if (mGLState.useProgram(program)) {
+                    mGLState.enableVertexArrays(aPos, GLState.DISABLED);
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        public Renderer(GLState glState) {
+            super(glState);
+            init();
+        }
+
+        boolean init() {
 
             shaders[0] = new Shader("line_aa_proj");
             shaders[1] = new Shader("line_aa");
@@ -568,31 +573,31 @@ public class LineBucket extends RenderBucket {
                 }
             }
 
-            mTexID = GLUtils.loadTexture(pixel, 128, 128, GL.ALPHA,
+            mTexID = GLUtils.loadTexture(mGLState, pixel, 128, 128, GL.ALPHA,
                     GL.NEAREST, GL.NEAREST,
                     GL.MIRRORED_REPEAT,
                     GL.MIRRORED_REPEAT);
             return true;
         }
 
-        public static RenderBucket draw(RenderBucket b, GLViewport v,
-                                        float scale, RenderBuckets buckets) {
+        public RenderBucket draw(RenderBucket b, GLViewport v,
+                                 float scale, RenderBuckets buckets) {
 
             /* simple line shader does not take forward shortening into
              * account. only used when tilt is 0. */
             int mode = v.pos.tilt < 1 ? 1 : 0;
 
             Shader s = shaders[mode];
-            s.useProgram();
+            mGLState.useProgram(s.program);
 
-            GLState.blend(true);
+            mGLState.blend(true);
 
             /* Somehow we loose the texture after an indefinite
              * time, when label/symbol textures are used.
              * Debugging gl on Desktop is most fun imaginable,
              * so for now: */
             if (!GLAdapter.GDX_DESKTOP_QUIRKS)
-                GLState.bindTex2D(mTexID);
+                mGLState.bindTex2D(mTexID);
 
             int uLineFade = s.uFade;
             int uLineMode = s.uMode;

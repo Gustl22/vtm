@@ -51,7 +51,7 @@ import java.io.InputStream;
 public class JeoTest {
 
     public static void indoorSketch(Map map, String file) {
-        MapRenderer.setBackgroundColor(0xff909090);
+        MapRenderer.getInstance().setBackgroundColor(0xff909090);
         VectorTileLayer baseLayer = map.setBaseMap(new OSciMap4TileSource());
         map.layers().add(new BuildingLayer(map, baseLayer));
 

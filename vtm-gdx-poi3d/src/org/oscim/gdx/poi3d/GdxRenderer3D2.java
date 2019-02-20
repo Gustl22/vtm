@@ -105,16 +105,16 @@ public class GdxRenderer3D2 extends LayerRenderer {
             gl.clear(GL.DEPTH_BUFFER_BIT);
 
         // Unbind via GLState to ensure no buffer is replaced by accident
-        GLState.bindElementBuffer(GLState.UNBIND);
-        GLState.bindBuffer(GL.ARRAY_BUFFER, GLState.UNBIND);
+        mGLState.bindElementBuffer(GLState.UNBIND);
+        mGLState.bindBuffer(GL.ARRAY_BUFFER, GLState.UNBIND);
 
         // set state that is expected after modelBatch.end();
         // modelBatch keeps track of its own state
-        GLState.enableVertexArrays(GLState.DISABLED, GLState.DISABLED);
-        GLState.bindTex2D(GLState.DISABLED);
-        GLState.useProgram(GLState.DISABLED);
-        GLState.test(false, false);
-        GLState.blend(false);
+        mGLState.enableVertexArrays(GLState.DISABLED, GLState.DISABLED);
+        mGLState.bindTex2D(GLState.DISABLED);
+        mGLState.useProgram(GLState.DISABLED);
+        mGLState.test(false, false);
+        mGLState.blend(false);
 
         // GL.cullFace(GL20.BACK);
         // GL.frontFace(GL20.CW);
@@ -161,11 +161,11 @@ public class GdxRenderer3D2 extends LayerRenderer {
         // GLUtils.checkGlError("<" + TAG);
 
         gl.depthMask(false);
-        GLState.bindElementBuffer(GLState.UNBIND);
-        GLState.bindBuffer(GL.ARRAY_BUFFER, GLState.UNBIND);
+        mGLState.bindElementBuffer(GLState.UNBIND);
+        mGLState.bindBuffer(GL.ARRAY_BUFFER, GLState.UNBIND);
 
-        // GLState.bindTex2D(-1);
-        // GLState.useProgram(-1);
+        // mGLState.bindTex2D(-1);
+        // mGLState.useProgram(-1);
     }
 
     // @Override

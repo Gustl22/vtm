@@ -86,16 +86,16 @@ public class GdxSpriteBatchTest extends GdxMapApp {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT | (Gdx.graphics.getBufferFormat().coverageSampling ?
                 GL20.GL_COVERAGE_BUFFER_BIT_NV : 0));
 
-        GLState.enableVertexArrays(GLState.DISABLED, GLState.DISABLED);
+        mMapRenderer.getGLState().enableVertexArrays(GLState.DISABLED, GLState.DISABLED);
 
-        GLState.viewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        mMapRenderer.getGLState().viewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         gl.frontFace(GL.CW);
 
         mMapRenderer.onDrawFrame();
 
         gl.flush();
-        GLState.bindVertexBuffer(GLState.UNBIND);
-        GLState.bindElementBuffer(GLState.UNBIND);
+        mMapRenderer.getGLState().bindVertexBuffer(GLState.UNBIND);
+        mMapRenderer.getGLState().bindElementBuffer(GLState.UNBIND);
         gl.frontFace(GL.CCW);
 
         spriteBatch.setProjectionMatrix(camera.combined);

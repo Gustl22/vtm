@@ -51,7 +51,7 @@ public class BitmapTileActivity extends MapActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        MapRenderer.setBackgroundColor(0xff777777);
+        MapRenderer.getInstance().setBackgroundColor(0xff777777);
 
         if (mTileSource == null)
             return;

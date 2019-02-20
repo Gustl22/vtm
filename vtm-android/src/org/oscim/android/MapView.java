@@ -289,7 +289,7 @@ public class MapView extends GLSurfaceView {
         }
     }
 
-    static class GLRenderer extends org.oscim.renderer.MapRenderer
+    class GLRenderer extends org.oscim.renderer.MapRenderer
             implements GLSurfaceView.Renderer {
 
         public GLRenderer(Map map) {

@@ -55,7 +55,7 @@ public class CircleTest extends GdxMapApp {
 
     @Override
     public void createLayers() {
-        MapRenderer.setBackgroundColor(Color.BLACK);
+        MapRenderer.getInstance().setBackgroundColor(Color.BLACK);
 
         mMap.setMapPosition(0, 0, 1 << 4);
 

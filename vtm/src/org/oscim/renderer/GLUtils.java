@@ -102,11 +102,11 @@ public class GLUtils {
                 wrap_t); // Set V Wrapping
     }
 
-    public static int loadTexture(byte[] pixel, int width, int height, int format,
+    public static int loadTexture(GLState glState, byte[] pixel, int width, int height, int format,
                                   int min_filter, int mag_filter, int wrap_s, int wrap_t) {
 
         int[] textureIds = GLUtils.glGenTextures(1);
-        GLState.bindTex2D(textureIds[0]);
+        glState.bindTex2D(textureIds[0]);
 
         setTextureParameter(min_filter, mag_filter, wrap_s, wrap_t);
 
@@ -117,7 +117,7 @@ public class GLUtils {
         gl.texImage2D(GL.TEXTURE_2D, 0, format, width, height, 0, format,
                 GL.UNSIGNED_BYTE, intBuf);
 
-        GLState.bindTex2D(0);
+        glState.bindTex2D(0);
 
         return textureIds[0];
     }

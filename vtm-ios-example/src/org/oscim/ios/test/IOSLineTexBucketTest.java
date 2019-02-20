@@ -46,7 +46,7 @@ import java.io.IOException;
 public class IOSLineTexBucketTest extends GdxMap {
 
     public static void init() {
-        // init globals
+        // initBucketRenderers globals
         IosGraphics.init();
         GdxAssets.init("assets/");
     }
@@ -65,7 +65,7 @@ public class IOSLineTexBucketTest extends GdxMap {
 
     @Override
     public void createLayers() {
-        MapRenderer.setBackgroundColor(0xffffffff);
+        MapRenderer.getInstance().setBackgroundColor(0xffffffff);
 
         mMap.setMapPosition(0, 0, 1 << 4);
 

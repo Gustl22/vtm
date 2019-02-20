@@ -22,6 +22,7 @@ import org.oscim.renderer.GLShader;
 import org.oscim.renderer.GLState;
 import org.oscim.renderer.GLViewport;
 import org.oscim.renderer.MapRenderer;
+import org.oscim.renderer.StateRenderer;
 import org.oscim.renderer.bucket.TextureItem.TexturePool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,49 +84,53 @@ public class TextureBucket extends RenderBucket {
         super.clear();
     }
 
-    static class Shader extends GLShader {
-        int uMV, uProj, uScale, uCoordScale, uTexSize, aPos, aTexCoord;
 
-        Shader() {
-            if (!create("texture_layer"))
-                return;
+    public static final class Renderer extends StateRenderer {
+        Shader shader;
 
-            uMV = getUniform("u_mv");
-            uProj = getUniform("u_proj");
-            uScale = getUniform("u_scale");
-            uCoordScale = getUniform("u_coord_scale");
-            uTexSize = getUniform("u_div");
-            aPos = getAttrib("vertex");
-            aTexCoord = getAttrib("tex_coord");
-        }
+        class Shader extends GLShader {
+            int uMV, uProj, uScale, uCoordScale, uTexSize, aPos, aTexCoord;
 
-        @Override
-        public boolean useProgram() {
-            if (super.useProgram()) {
-                GLState.enableVertexArrays(aPos, aTexCoord);
-                return true;
+            Shader() {
+                if (!create("texture_layer"))
+                    return;
+
+                uMV = getUniform("u_mv");
+                uProj = getUniform("u_proj");
+                uScale = getUniform("u_scale");
+                uCoordScale = getUniform("u_coord_scale");
+                uTexSize = getUniform("u_div");
+                aPos = getAttrib("vertex");
+                aTexCoord = getAttrib("tex_coord");
             }
-            return false;
+
+            public boolean useProgram() {
+                if (mGLState.useProgram(program)) {
+                    mGLState.enableVertexArrays(aPos, aTexCoord);
+                    return true;
+                }
+                return false;
+            }
         }
-    }
 
-    static Shader shader;
+        public Renderer(GLState mGLState) {
+            super(mGLState);
+            init();
+        }
 
-    public static final class Renderer {
-
-        static void init() {
+        void init() {
             shader = new Shader();
 
             /* FIXME pool should be disposed on exit... */
             pool.init(0);
         }
 
-        public static RenderBucket draw(RenderBucket b, GLViewport v, float scale) {
+        public RenderBucket draw(RenderBucket b, GLViewport v, float scale) {
 
-            GLState.test(false, false);
-            GLState.blend(true);
+            mGLState.test(false, false);
+            mGLState.blend(true);
 
-            shader.useProgram();
+            mGLState.useProgram(shader.program);
 
             TextureBucket tb = (TextureBucket) b;
             gl.uniform1f(shader.uScale, tb.fixed ? 1 / scale : 1);
@@ -134,7 +139,7 @@ public class TextureBucket extends RenderBucket {
             v.proj.setAsUniform(shader.uProj);
             v.mvp.setAsUniform(shader.uMV);
 
-            MapRenderer.bindQuadIndicesVBO();
+            mGLState.bindQuadIndicesVBO();
 
             for (TextureItem t = tb.textures; t != null; t = t.next) {
                 gl.uniform2f(shader.uTexSize,
@@ -152,7 +157,7 @@ public class TextureBucket extends RenderBucket {
                     if (numIndices > MAX_INDICES)
                         numIndices = MAX_INDICES;
 
-                    tb.render(off, numIndices);
+                    tb.render(off, numIndices, shader);
                 }
             }
 
@@ -164,7 +169,7 @@ public class TextureBucket extends RenderBucket {
         return textures;
     }
 
-    public void render(int offset, int numIndices) {
+    public void render(int offset, int numIndices, Renderer.Shader shader) {
         gl.vertexAttribPointer(shader.aPos, 4, GL.SHORT,
                 false, RenderBuckets.SHORT_BYTES * 6, offset);
 

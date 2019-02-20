@@ -184,11 +184,11 @@ public abstract class ExtrusionRenderer extends LayerRenderer {
         gl.depthMask(true);
         gl.clear(GL.DEPTH_BUFFER_BIT);
 
-        GLState.test(true, false);
+        mGLState.test(true, false);
 
         Shader s = mShader;
-        s.useProgram();
-        GLState.enableVertexArrays(s.aPos, GLState.DISABLED);
+        mGLState.useProgram(s.program);
+        mGLState.enableVertexArrays(s.aPos, GLState.DISABLED);
 
         /* only use face-culling when it's unlikely
          * that one'moves through the building' */
@@ -204,7 +204,7 @@ public abstract class ExtrusionRenderer extends LayerRenderer {
 
         if (mTranslucent) {
             /* only draw to depth buffer */
-            GLState.blend(false);
+            mGLState.blend(false);
             gl.colorMask(false, false, false, false);
             gl.uniform1i(s.uMode, -1);
 
@@ -212,8 +212,8 @@ public abstract class ExtrusionRenderer extends LayerRenderer {
                 if (ebs[i].ibo == null)
                     return;
 
-                ebs[i].ibo.bind();
-                ebs[i].vbo.bind();
+                ebs[i].ibo.bind(mGLState);
+                ebs[i].vbo.bind(mGLState);
 
                 setMatrix(s, v, ebs[i]);
 
@@ -232,16 +232,16 @@ public abstract class ExtrusionRenderer extends LayerRenderer {
             gl.depthFunc(GL.EQUAL);
         }
 
-        GLState.blend(true);
+        mGLState.blend(true);
 
-        GLState.enableVertexArrays(s.aPos, s.aNormal);
+        mGLState.enableVertexArrays(s.aPos, s.aNormal);
 
         for (int i = 0; i < mBucketsCnt; i++) {
             if (ebs[i].ibo == null)
                 continue;
 
-            ebs[i].ibo.bind();
-            ebs[i].vbo.bind();
+            ebs[i].ibo.bind(mGLState);
+            ebs[i].vbo.bind(mGLState);
 
             if (!mTranslucent)
                 setMatrix(s, v, ebs[i]);
