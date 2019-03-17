@@ -31,7 +31,7 @@ allprojects {
 static def androidCompileSdk() { return 29 }
 
 // 14 for Support Library, 16 for sqlite-android
-static def androidMinSdk() { return 16 }
+static def androidMinSdk() { return 24 }
 
 static def androidTargetSdk() { return 29 }
 
@@ -48,7 +48,7 @@ subprojects {
     }
 
     tasks.withType(JavaCompile) {
-        sourceCompatibility = JavaVersion.VERSION_1_7
-        targetCompatibility = JavaVersion.VERSION_1_7
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
 }

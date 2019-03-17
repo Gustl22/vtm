@@ -26,8 +26,23 @@ import org.oscim.utils.geom.GeometryUtils;
 import org.oscim.utils.math.MathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.twak.camp.Corner;
+import org.twak.camp.Edge;
+import org.twak.camp.Machine;
+import org.twak.camp.Output;
+import org.twak.camp.Skeleton;
+import org.twak.camp.debug.DebugDevice;
+import org.twak.camp.ui.Bar;
+import org.twak.siteplan.campskeleton.Plan;
+import org.twak.siteplan.campskeleton.PlanSkeleton;
+import org.twak.siteplan.campskeleton.Profile;
+import org.twak.utils.collections.Loop;
+import org.twak.utils.collections.LoopL;
 
 import java.util.*;
+
+import javax.vecmath.Point2d;
+import javax.vecmath.Point3d;
 
 /**
  * Provides utils for S3DB layers.
@@ -84,99 +99,99 @@ public final class S3DBUtils {
         ridgePoints.put(id, point);
     }
 
-    /**
-     * Calculates a circle mesh of a Poly-GeometryBuffer.
-     *
-     * @param element the GeometryBuffer which is used to write the 3D mesh
-     * @return true if calculation succeeded, false otherwise
-     */
-    public static boolean calcCircleMesh(GeometryBuffer element, float minHeight, float maxHeight, String roofShape) {
-        float[] points = element.points;
-        int[] index = element.index;
-
-        boolean outerProcessed = false;
-        for (int i = 0, pointPos = 0; i < index.length && !outerProcessed; i++) {
-            if (index[i] < 0) {
-                break;
-            }
-
-            int numSections = index[i] / 2;
-            if (numSections < 0) continue;
-
-            outerProcessed = true;
-
-            // Init mesh
-            GeometryBuffer mesh;
-            mesh = initCircleMesh(getProfile(roofShape), numSections);
-
-            // Calculate center and load points
-            float centerX = 0;
-            float centerY = 0;
-            float radius = 0;
-
-            List<float[]> point3Fs = new ArrayList<>();
-
-            for (int j = 0; j < (numSections * 2); j += 2, pointPos += 2) {
-                float x = points[pointPos];
-                float y = points[pointPos + 1];
-
-                point3Fs.add(new float[]{x, y, minHeight});
-
-                centerX += x;
-                centerY += y;
-            }
-
-            centerX = centerX / numSections;
-            centerY = centerY / numSections;
-
-            // Calc max radius
-            for (float[] point3F : point3Fs) {
-                float difX = point3F[0] - centerX;
-                float difY = point3F[1] - centerY;
-                float tmpR = (float) Math.sqrt(difX * difX + difY * difY);
-                if (tmpR > radius) {
-                    radius = tmpR;
-                }
-            }
-
-            element.points = mesh.points;
-
-            // Calc radius and adjust angle
-            int numPointsPerSection = (element.points.length / (3 * numSections));
-            float heightRange = maxHeight - minHeight;
-            for (int k = 0, j = 0; k < numSections; k++) {
-                float px = point3Fs.get(k)[0] - centerX;
-                float py = point3Fs.get(k)[1] - centerY;
-
-                float phi = (float) Math.atan2(py, px);
-                int sectionLimit = (numPointsPerSection + numPointsPerSection * k) * 3;
-
-                for (boolean first = true; j < sectionLimit; j = j + 3) {
-                    float r = element.points[j + 0] * radius; // Set radius to initial x (always positive) stretched with individual element radius
-                    px = (float) (r * Math.cos(phi));
-                    py = (float) (r * Math.sin(phi));
-
-                    if (!first) {
-                        element.points[j + 0] = centerX + px;
-                        element.points[j + 1] = centerY + py;
-                        element.points[j + 2] = minHeight + element.points[j + 2] * heightRange;
-                    } else {
-                        // Set lowest points to outline points.
-                        first = false;
-                        element.points[j + 0] = point3Fs.get(k)[0];
-                        element.points[j + 1] = point3Fs.get(k)[1];
-                        element.points[j + 2] = minHeight;
-                    }
-                }
-            }
-
-            element.index = mesh.index;
-            element.pointNextPos = element.points.length;
-        }
-
-        element.type = GeometryBuffer.GeometryType.TRIS;
-        return true;
-    }
+//    /**
+//     * Calculates a circle mesh of a Poly-GeometryBuffer.
+//     *
+//     * @param element the GeometryBuffer which is used to write the 3D mesh
+//     * @return true if calculation succeeded, false otherwise
+//     */
+//    public static boolean calcCircleMesh(GeometryBuffer element, float minHeight, float maxHeight, String roofShape) {
+//        float[] points = element.points;
+//        int[] index = element.index;
+//
+//        boolean outerProcessed = false;
+//        for (int i = 0, pointPos = 0; i < index.length && !outerProcessed; i++) {
+//            if (index[i] < 0) {
+//                break;
+//            }
+//
+//            int numSections = index[i] / 2;
+//            if (numSections < 0) continue;
+//
+//            outerProcessed = true;
+//
+//            // Init mesh
+//            GeometryBuffer mesh;
+//            mesh = initCircleMesh(getProfile(roofShape), numSections);
+//
+//            // Calculate center and load points
+//            float centerX = 0;
+//            float centerY = 0;
+//            float radius = 0;
+//
+//            List<float[]> point3Fs = new ArrayList<>();
+//
+//            for (int j = 0; j < (numSections * 2); j += 2, pointPos += 2) {
+//                float x = points[pointPos];
+//                float y = points[pointPos + 1];
+//
+//                point3Fs.add(new float[]{x, y, minHeight});
+//
+//                centerX += x;
+//                centerY += y;
+//            }
+//
+//            centerX = centerX / numSections;
+//            centerY = centerY / numSections;
+//
+//            // Calc max radius
+//            for (float[] point3F : point3Fs) {
+//                float difX = point3F[0] - centerX;
+//                float difY = point3F[1] - centerY;
+//                float tmpR = (float) Math.sqrt(difX * difX + difY * difY);
+//                if (tmpR > radius) {
+//                    radius = tmpR;
+//                }
+//            }
+//
+//            element.points = mesh.points;
+//
+//            // Calc radius and adjust angle
+//            int numPointsPerSection = (element.points.length / (3 * numSections));
+//            float heightRange = maxHeight - minHeight;
+//            for (int k = 0, j = 0; k < numSections; k++) {
+//                float px = point3Fs.get(k)[0] - centerX;
+//                float py = point3Fs.get(k)[1] - centerY;
+//
+//                float phi = (float) Math.atan2(py, px);
+//                int sectionLimit = (numPointsPerSection + numPointsPerSection * k) * 3;
+//
+//                for (boolean first = true; j < sectionLimit; j = j + 3) {
+//                    float r = element.points[j + 0] * radius; // Set radius to initial x (always positive) stretched with individual element radius
+//                    px = (float) (r * Math.cos(phi));
+//                    py = (float) (r * Math.sin(phi));
+//
+//                    if (!first) {
+//                        element.points[j + 0] = centerX + px;
+//                        element.points[j + 1] = centerY + py;
+//                        element.points[j + 2] = minHeight + element.points[j + 2] * heightRange;
+//                    } else {
+//                        // Set lowest points to outline points.
+//                        first = false;
+//                        element.points[j + 0] = point3Fs.get(k)[0];
+//                        element.points[j + 1] = point3Fs.get(k)[1];
+//                        element.points[j + 2] = minHeight;
+//                    }
+//                }
+//            }
+//
+//            element.index = mesh.index;
+//            element.pointNextPos = element.points.length;
+//        }
+//
+//        element.type = GeometryBuffer.GeometryType.TRIS;
+//        return true;
+//    }
 
     /**
      * Calculates a flat mesh of a Poly-GeometryBuffer.
@@ -836,6 +851,256 @@ public final class S3DBUtils {
         }
 
         return element.isTris();
+    }
+
+    /**
+     * @article kelly2011interactive,
+     * title={Interactive architectural modeling with procedural extrusions},
+     * author={Kelly, Tom and Wonka, Peter},
+     * journal={ACM Transactions on Graphics (TOG)},
+     * volume={30},
+     * number={2},
+     * pages={14},
+     * year={2011},
+     * publisher={ACM}
+     */
+    public static boolean calcTwakRoof(GeometryBuffer element, float minHeight, float maxHeight, Float roofAngle, boolean orientationAcross, boolean isGabled, GeometryBuffer specialParts) {
+        float[] points = element.points;
+        int[] index = element.index;
+
+//        Machine speed1 = new Machine(Math.PI / 4);
+        if (roofAngle == null) roofAngle = 20f;
+        Machine speed1 = new Machine(MathUtils.degRad * roofAngle);
+
+        for (int i = 0, pointPos = 0; i < index.length; i++) {
+            if (index[i] < 0) {
+                break;
+            }
+            if (i > 0) break; // Handle only first polygon
+
+            int numPoints = index[i] / 2;
+            if (numPoints < 0) continue;
+
+            if (numPoints < 4 || (!isGabled && orientationAcross)) {
+                calcPyramidalMesh(element, minHeight, maxHeight);
+                return true;
+            }
+
+            Loop<Edge> loop = new Loop<>();
+            Corner c1 = new Corner(points[0], points[1]);
+            Corner start = c1;
+
+            // Calculate center and load points
+            for (int j = 2; j < (numPoints * 2); j += 2, pointPos += 2) {
+                float x = points[j];
+                float y = points[j + 1];
+
+                Corner c2 = new Corner(x, y);
+
+                Edge e = new Edge(c1, c2);
+                loop.append(e);
+                e.machine = speed1;
+
+                c1 = c2;
+            }
+
+            Edge e = new Edge(c1, start);
+            loop.append(e);
+            e.machine = speed1;
+
+            Skeleton skel = new Skeleton(loop.singleton(), true);
+            skel.skeleton();
+
+
+            List<Float> meshVarPoints = new ArrayList<>();
+            List<Integer> meshVarIndex = new ArrayList<>();
+            for (Output.Face face : skel.output.faces.values()) {
+                int count = face.points.count();
+                if (count > 3) {
+                    float[] pointTmp = new float[count * 3];
+                    int l = 0;
+                    for (Loop<Point3d> lp3 : face.points) {
+                        for (Point3d pt : lp3) {
+                            pointTmp[l++] = (float) pt.x;
+                            pointTmp[l++] = (float) pt.y;
+                            pointTmp[l++] = (float) pt.z + minHeight;
+                        }
+                    }
+
+                    GeometryBuffer buffer = new GeometryBuffer(pointTmp, new int[]{pointTmp.length});
+                    if (Tessellator.tessellate3D(buffer, buffer) != 0) {
+                        int offset = meshVarPoints.size() / 3;
+                        for (int ind : buffer.index) {
+                            // Get position in ridgePoints, considering skipped points
+                            meshVarIndex.add(ind + offset);
+                        }
+                        for (float point : buffer.points) {
+                            meshVarPoints.add(point);
+                        }
+                    } else {
+
+                    }
+                } else if (count == 3) {
+                    for (Loop<Point3d> lp3 : face.points) {
+                        for (Point3d pt : lp3) {
+                            meshVarIndex.add(meshVarPoints.size() / 3);
+                            meshVarPoints.add((float) pt.x);
+                            meshVarPoints.add((float) pt.y);
+                            meshVarPoints.add((float) pt.z + minHeight);
+                        }
+                    }
+                } else {
+                    log.warn(S3DBUtils.class.getName() + " calcTwakRoof: Too view points in face");
+                }
+            }
+
+
+            float[] meshPoints = new float[meshVarPoints.size()];
+            int[] meshIndex = new int[meshVarIndex.size()];
+            for (int l = 0; l < meshIndex.length; l++) {
+                meshIndex[l] = meshVarIndex.get(l);
+            }
+            for (int l = 0; l < meshPoints.length; l++) {
+                meshPoints[l] = meshVarPoints.get(l);
+            }
+
+            element.points = meshPoints;
+            element.index = meshIndex;
+            element.pointNextPos = meshPoints.length;
+            element.type = GeometryBuffer.GeometryType.TRIS;
+        }
+
+        return true;
+    }
+
+    public static boolean calcSiteplanRoof(GeometryBuffer element, float minHeight, float maxHeight, Float roofAngle, boolean orientationAcross, String v, boolean isGabled, GeometryBuffer specialParts) {
+        float[] points = element.points;
+        int[] index = element.index;
+
+        float[][] simpProfile = S3DBUtils.getProfile(v);
+//        Machine speed1 = new Machine(Math.PI / 4);
+        if (roofAngle == null) roofAngle = 20f;
+
+        Plan plan = new Plan();
+        plan.name = "root-plan";
+
+        List<Point2d> pts = new ArrayList<>();
+        for (float[] point : simpProfile) {
+            pts.add(new Point2d((1 - point[0]) * 10, -point[1] * 20));
+        }
+
+        Profile profile = new Profile(pts);
+
+//		defaultProf.points.get( 0 ).start.get().end.x += 20;
+
+        LoopL<Bar> loopl = new LoopL();
+
+        for (int i = 0, pointPos = 0; i < index.length; i++) {
+            if (index[i] < 0) {
+                break;
+            }
+            if (i > 0) break; // Handle only first polygon
+
+            int numPoints = index[i] / 2;
+            if (numPoints < 0) continue;
+
+            if (numPoints < 4 || (!isGabled && orientationAcross)) {
+                calcPyramidalMesh(element, minHeight, maxHeight);
+                return true;
+            }
+
+            Loop<Bar> loop = new Loop<>();
+            loopl.add(loop);
+            Point2d c1 = new Point2d(points[0], points[1]);
+            Point2d start = c1;
+
+            // Calculate center and load points
+            for (int j = 2; j < (numPoints * 2); j += 2, pointPos += 2) {
+                float x = points[j];
+                float y = points[j + 1];
+
+                Point2d c2 = new Point2d(x, y);
+
+                Bar b = new Bar(c1, c2);
+                loop.append(b);
+                plan.profiles.put(b, profile);
+
+                c1 = c2;
+            }
+            Bar b = new Bar(c1, start);
+            loop.append(b);
+            plan.profiles.put(b, profile);
+        }
+        plan.points = loopl;
+        plan.addLoop(profile.points.get(0), plan.root, profile);
+
+        DebugDevice.reset();
+        Skeleton s = new PlanSkeleton(plan);
+        s.skeleton();
+
+        if (s.output.faces != null) {
+            Output output = s.output;
+
+            List<Float> meshVarPoints = new ArrayList<>();
+            List<Integer> meshVarIndex = new ArrayList<>();
+            for (Output.Face face : output.faces.values()) {
+                int count = face.points.count();
+                if (count > 3) {
+                    float[] pointTmp = new float[count * 3];
+                    int l = 0;
+                    for (Loop<Point3d> lp3 : face.points) {
+                        for (Point3d pt : lp3) {
+                            pointTmp[l++] = (float) pt.x;
+                            pointTmp[l++] = (float) pt.y;
+                            pointTmp[l++] = (float) pt.z + minHeight;
+                        }
+                    }
+
+                    GeometryBuffer buffer = new GeometryBuffer(pointTmp, new int[]{pointTmp.length});
+                    if (Tessellator.tessellate3D(buffer, buffer) != 0) {
+                        int offset = meshVarPoints.size() / 3;
+                        for (int ind : buffer.index) {
+                            // Get position in ridgePoints, considering skipped points
+                            meshVarIndex.add(ind + offset);
+                        }
+                        for (float point : buffer.points) {
+                            meshVarPoints.add(point);
+                        }
+                    } else {
+
+                    }
+                } else if (count == 3) {
+                    for (Loop<Point3d> lp3 : face.points) {
+                        for (Point3d pt : lp3) {
+                            meshVarIndex.add(meshVarPoints.size() / 3);
+                            meshVarPoints.add((float) pt.x);
+                            meshVarPoints.add((float) pt.y);
+                            meshVarPoints.add((float) pt.z + minHeight);
+                        }
+                    }
+                } else {
+                    log.warn(S3DBUtils.class.getName() + " calcTwakRoof: Too view points in face");
+                }
+            }
+
+            float[] meshPoints = new float[meshVarPoints.size()];
+            int[] meshIndex = new int[meshVarIndex.size()];
+            for (int l = 0; l < meshIndex.length; l++) {
+                meshIndex[l] = meshVarIndex.get(l);
+            }
+            for (int l = 0; l < meshPoints.length; l++) {
+                meshPoints[l] = meshVarPoints.get(l);
+            }
+
+            element.points = meshPoints;
+            element.index = meshIndex;
+            element.pointNextPos = meshPoints.length;
+            element.type = GeometryBuffer.GeometryType.TRIS;
+
+            return true;
+        }
+
+        return false;
     }
 
     /**

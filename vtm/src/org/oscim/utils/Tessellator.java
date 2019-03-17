@@ -185,6 +185,36 @@ public class Tessellator {
         return nelems;
     }
 
+    /**
+     * Tessellates a 3D-{@link org.oscim.core.GeometryBuffer} to a triangular/mesh GeometryBuffer.
+     * The points array remains the same.
+     *
+     * @param geom    the input GeometryBuffer as 3D-POLYGON
+     * @param outMesh the out GeometryBuffer as 3D-MESH.
+     * @return number of indices of out3D (0 if tessellation failed)
+     */
+    public static int tessellate3D(GeometryBuffer geom, GeometryBuffer outMesh) {
+        float[] storePoints = geom.points;
+        int count2D = 0; // Count of points in 2D array
+        for (int i = 0; i < geom.index.length; i++) {
+            if (geom.index[i] < 0) break;
+            int count = (geom.index[i] / 3) * 2;
+            outMesh.index[i] = count; // Write 3D -> 2D index in outMesh
+            count2D += count;
+        }
+        outMesh.points = new float[count2D]; // New array as outMesh and geom can be same
+        // Iterate through 3D points and only keep 2D points in outMesh
+        for (int i = 0, j = 0; i < count2D; i += 2, j += 3) {
+            outMesh.points[i] = storePoints[j];
+            outMesh.points[i + 1] = storePoints[j + 1];
+        }
+        int result = tessellate(outMesh, outMesh);
+
+        // Reset to default points, as they keep order during tesselation
+        outMesh.points = storePoints;
+        return result;
+    }
+
     //    private static final int RESULT_VERTICES = 0;
     //    private static final int RESULT_TRIANGLES = 1;
     //

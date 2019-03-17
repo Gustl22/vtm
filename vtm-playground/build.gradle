@@ -24,7 +24,7 @@ sourceSets {
     }
 }
 
-mainClassName = "org.oscim.test.MapsforgeTest"
+mainClassName = "org.oscim.test.MapsforgeS3DBTest"
 run {
     if (project.hasProperty("args")) {
         args project.getProperty("args").split(",")
@@ -39,4 +39,9 @@ task fatJar(type: Jar, dependsOn: classes) {
         attributes 'Main-Class': "${mainClassName}"
     }
     with jar
+}
+
+task copyLibs(type: Copy) {
+    from configurations.compile
+    into 'libs'
 }

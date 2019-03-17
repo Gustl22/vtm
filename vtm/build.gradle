@@ -4,6 +4,8 @@ apply plugin: 'maven'
 dependencies {
     api "org.slf4j:slf4j-api:$slf4jVersion"
     compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
+//    api 'com.github.twak:siteplan:master-SNAPSHOT'
+    api 'com.github.gustl22:siteplan:jitpacktest-SNAPSHOT'
 }
 
 sourceSets {

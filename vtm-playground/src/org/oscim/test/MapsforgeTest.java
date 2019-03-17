@@ -40,7 +40,7 @@ import java.util.Calendar;
 
 public class MapsforgeTest extends GdxMapApp {
 
-    private static final boolean SHADOWS = false;
+    private static final boolean SHADOWS = true;
 
     private File mapFile;
     private boolean poi3d;
@@ -93,7 +93,7 @@ public class MapsforgeTest extends GdxMapApp {
         }
         mMap.setMapPosition(pos);
 
-        if (SHADOWS) {
+        if (false) {
             final ExtrusionRenderer extrusionRenderer = buildingLayer.getExtrusionRenderer();
             mMap.events.bind(new Map.UpdateListener() {
                 Calendar date = Calendar.getInstance();

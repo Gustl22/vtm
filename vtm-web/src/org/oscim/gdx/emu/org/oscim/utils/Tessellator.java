@@ -161,6 +161,10 @@ public class Tessellator {
         return 0;
     }
 
+    public static int tessellate3D(GeometryBuffer geom, GeometryBuffer out) {
+        return 0;
+    }
+
     static native Int32Array tessellate(JsArrayNumber points, int pOffset, int pLength,
                                         JsArrayInteger bounds, int bOffset, int bLength)/*-{
 

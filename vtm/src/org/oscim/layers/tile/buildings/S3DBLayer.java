@@ -100,6 +100,7 @@ public class S3DBLayer extends BuildingLayer {
         int maxHeight = 0; // cm
         int minHeight = 0; // cm
         int roofHeight = 0;
+        Float roofAngle = null;
 
         // Get roof height
         String v = getValue(element, Tag.KEY_ROOF_HEIGHT);
@@ -108,6 +109,7 @@ public class S3DBLayer extends BuildingLayer {
         } else if ((v = getValue(element, Tag.KEY_ROOF_LEVELS)) != null) {
             roofHeight = (int) (Float.parseFloat(v) * BUILDING_LEVEL_HEIGHT);
         } else if ((v = getValue(element, Tag.KEY_ROOF_ANGLE)) != null) {
+            roofAngle = Float.parseFloat(v);
             Box bb = null;
             for (int k = 0; k < element.index[0]; k += 2) {
                 float p1 = element.points[k];
@@ -174,7 +176,7 @@ public class S3DBLayer extends BuildingLayer {
         float minRoofHeightS = ExtrusionUtils.mapGroundScale(maxHeight - roofHeight, groundScale) * TILE_SCALE;
 
         // Process building and roof
-        processRoof(element, tile, minRoofHeightS, maxHeightS, bColor, extrusion);
+        processRoof(element, tile, minRoofHeightS, maxHeightS, roofAngle, bColor, extrusion);
         if (S3DBUtils.calcOutlines(element, minHeightS, minRoofHeightS)) {
             get(tile).addMeshElement(element, groundScale, bColor);
         }
@@ -251,7 +253,7 @@ public class S3DBLayer extends BuildingLayer {
      * @param extrusion     the extrusion style
      */
     private void processRoof(MapElement element, MapTile tile, float minHeight, float maxHeight,
-                             int buildingColor, ExtrusionStyle extrusion) {
+                             Float roofAngle, int buildingColor, ExtrusionStyle extrusion) {
         int roofColor = extrusion.colorTop;
         String v;
 
@@ -288,21 +290,23 @@ public class S3DBLayer extends BuildingLayer {
 
         boolean success;
         switch (v) {
-            case Tag.VALUE_DOME:
-            case Tag.VALUE_ONION:
-                success = S3DBUtils.calcCircleMesh(gElement, minHeight, maxHeight, v);
-                break;
+//                success = S3DBUtils.calcCircleMesh(gElement, minHeight, maxHeight, v);
+//                break;
             case Tag.VALUE_ROUND:
             case Tag.VALUE_SALTBOX:
             case Tag.VALUE_GABLED:
             case Tag.VALUE_GAMBREL:
                 specialParts = new GeometryBuffer(0, 0); // No data in GeometryBuffer needed
-                success = S3DBUtils.calcRidgeMesh(gElement, minHeight, maxHeight, roofOrientationAcross, v, specialParts);
+//                success = S3DBUtils.calcRidgeMesh(gElement, minHeight, maxHeight, roofOrientationAcross, v, specialParts);
+//                break;
+                success = S3DBUtils.calcSiteplanRoof(gElement, minHeight, maxHeight, roofAngle, roofOrientationAcross, v, true, specialParts);
                 break;
+            case Tag.VALUE_DOME:
+            case Tag.VALUE_ONION:
             case Tag.VALUE_MANSARD:
             case Tag.VALUE_HALF_HIPPED:
             case Tag.VALUE_HIPPED:
-                success = S3DBUtils.calcRidgeMesh(gElement, minHeight, maxHeight, roofOrientationAcross, v, null);
+                success = S3DBUtils.calcSiteplanRoof(gElement, minHeight, maxHeight, roofAngle, roofOrientationAcross, v, false, null);
                 break;
             case Tag.VALUE_SKILLION:
                 // ROOF_SLOPE_DIRECTION is not supported yet
