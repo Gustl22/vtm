@@ -39,12 +39,12 @@ import org.oscim.utils.FastMath;
  */
 public class Viewport {
 
-    public static final int MAX_ZOOM_LEVEL = 20;
+    public static final int MAX_ZOOM_LEVEL = 22;
     public static final int MIN_ZOOM_LEVEL = 2;
     public static final float MIN_TILT = 0;
 
     /* Note: limited by numTiles in TileManager to ~80° */
-    public static final float MAX_TILT = 65;
+    public static final float MAX_TILT = 82;
 
     protected double mMaxScale = (1 << MAX_ZOOM_LEVEL);
     protected double mMinScale = (1 << MIN_ZOOM_LEVEL);

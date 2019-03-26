@@ -133,14 +133,26 @@ public final class GeometryUtils {
 
         // Calculate center
         for (int i = 0; i < n; i += 2, pointPos += 2) {
-            float x = points[pointPos];
-            float y = points[pointPos + 1];
-
-            out[0] += x;
-            out[1] += y;
+            out[0] += points[pointPos];
+            out[1] += points[pointPos + 1];
         }
         out[0] = out[0] * 2 / n;
         out[1] = out[1] * 2 / n;
+
+        return out;
+    }
+
+    public static float[] center(float[][] points, float[] out) {
+        if (out == null)
+            out = new float[2];
+
+        // Calculate center
+        for (float[] point : points) {
+            out[0] += point[0];
+            out[1] += point[1];
+        }
+        out[0] = out[0] / points.length;
+        out[1] = out[1] / points.length;
 
         return out;
     }
@@ -229,7 +241,7 @@ public final class GeometryUtils {
      */
     public static float distancePointLine2D(float[] pP, float[] pL, float[] vL) {
         float[] vPL = diffVec(pL, pP);
-        float[] vPS = diffVec(vPL, scale(vL, dotProduct(vPL, vL)));
+        float[] vPS = diffVec(vPL, scale(vL, dotProduct(vPL, vL) / dotProduct(vL, vL)));
         return (float) Math.sqrt(dotProduct(vPS, vPS));
     }
 
@@ -352,6 +364,18 @@ public final class GeometryUtils {
             length += coord * coord;
         }
         return Math.sqrt(length);
+    }
+
+    /**
+     * @param pP point
+     * @param pL point of line
+     * @param vL vector of line
+     * @return the minimum distance between line and point
+     */
+    public static float[] nearestPointOnLine2D(float[] pP, float[] pL, float[] vL) {
+        float[] vPL = diffVec(pL, pP);
+        float[] vPS = diffVec(vPL, scale(vL, dotProduct(vPL, vL) / dotProduct(vL, vL)));
+        return sumVec(pP, vPS);
     }
 
     /**

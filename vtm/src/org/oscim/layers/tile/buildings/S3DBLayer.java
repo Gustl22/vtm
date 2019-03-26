@@ -50,7 +50,7 @@ public class S3DBLayer extends BuildingLayer {
     private boolean mTransparent = true;
 
     public S3DBLayer(Map map, VectorTileLayer tileLayer) {
-        this(map, tileLayer, false);
+        this(map, tileLayer, true);
     }
 
     public S3DBLayer(Map map, VectorTileLayer tileLayer, boolean shadow) {
@@ -101,6 +101,13 @@ public class S3DBLayer extends BuildingLayer {
     @Override
     public void processElement(MapElement element, ExtrusionStyle extrusion, MapTile tile) {
         float groundScale = tile.getGroundScale();
+
+//        if(!element.tags.contains(Tag.KEY_ROOF_ORIENTATION, "along")
+//        || !element.tags.contains(Tag.KEY_ROOF_LEVELS, "2")
+//                || !element.tags.contains(Tag.KEY_ROOF_SHAPE, "gabled")
+//                || !element.tags.contains(Tag.KEY_BUILDING_LEVELS, "4")
+//                || !element.tags.contains(Tag.KEY_ROOF_COLOR, "brown"))
+//            return;
 
         int maxHeight = 0; // cm
         int minHeight = 0; // cm
@@ -207,7 +214,7 @@ public class S3DBLayer extends BuildingLayer {
                 if (rootBuilding.element.isBuildingPart())
                     continue;
                 if (RAW_DATA) {
-                    float[] center = GeometryUtils.center(partBuilding.element.points, 0, partBuilding.element.pointNextPos, null);
+                    float[] center = GeometryUtils.center(partBuilding.element.points, 0, partBuilding.element.getPointsSize(), null);
                     if (!GeometryUtils.pointInPoly(center[0], center[1], rootBuilding.element.points, rootBuilding.element.index[0], 0))
                         continue;
                 } else if (!refId.equals(rootBuilding.element.tags.getValue(Tag.KEY_ID)))
@@ -302,12 +309,12 @@ public class S3DBLayer extends BuildingLayer {
             case Tag.VALUE_GABLED:
             case Tag.VALUE_GAMBREL:
                 specialParts = new GeometryBuffer(0, 0); // No data in GeometryBuffer needed
-                success = S3DBUtils.calcRidgeMesh(gElement, minHeight, maxHeight, roofOrientationAcross, true, specialParts);
+                success = S3DBUtils.calcRidgeMesh(gElement, minHeight, maxHeight, roofOrientationAcross, v, specialParts);
                 break;
             case Tag.VALUE_MANSARD:
             case Tag.VALUE_HALF_HIPPED:
             case Tag.VALUE_HIPPED:
-                success = S3DBUtils.calcRidgeMesh(gElement, minHeight, maxHeight, roofOrientationAcross, false, null);
+                success = S3DBUtils.calcRidgeMesh(gElement, minHeight, maxHeight, roofOrientationAcross, v, null);
                 break;
             case Tag.VALUE_SKILLION:
                 // ROOF_SLOPE_DIRECTION is not supported yet

@@ -18,7 +18,6 @@ import org.oscim.core.MapElement;
 import org.oscim.core.Tag;
 import org.oscim.core.Tile;
 import org.oscim.gdx.GdxMapApp;
-import org.oscim.layers.TileGridLayer;
 import org.oscim.layers.tile.buildings.BuildingLayer;
 import org.oscim.layers.tile.buildings.S3DBLayer;
 import org.oscim.layers.tile.vector.VectorTileLayer;
@@ -28,8 +27,14 @@ import org.oscim.theme.VtmThemes;
 public class ExtrusionsTest extends GdxMapApp {
 
     enum GroundShape {
-        HEXAGON, RECTANGLE, SHAPE_L, SHAPE_O, SHAPE_T, SHAPE_U, SHAPE_V, SHAPE_X, SHAPE_Z, TEST
+        HEXAGON, RECTANGLE, SHAPE_L, SHAPE_M, SHAPE_O, SHAPE_T, SHAPE_U, SHAPE_V, SHAPE_X, SHAPE_Z, TEST
     }
+
+    // Default ground shape
+    public GroundShape mGroundShape = GroundShape.SHAPE_L;
+
+    // Default roof shape
+    public Tag mRoofShape = new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_HIPPED);
 
     /**
      * Iterate through ground or roof shapes.
@@ -38,35 +43,39 @@ public class ExtrusionsTest extends GdxMapApp {
      * 2: default roof, all grounds
      * 3: iterate all
      */
-    private static final int MODE = 1;
+    private static final int MODE = 0;
 
-    // Default ground shape
-    private GroundShape mGroundShape = GroundShape.RECTANGLE;
-
-    // Default roof shape
-    private Tag mRoofShape = new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_GABLED);
-
-    private Tag[] mRoofShapes = {
-            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_FLAT),
-            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_GABLED),
-            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_PYRAMIDAL),
-            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_DOME),
-            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_GAMBREL),
-            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_HALF_HIPPED),
-            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_HIPPED),
-            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_MANSARD),
-            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_ONION),
-            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_ROUND),
-            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_SALTBOX),
-            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_SKILLION)
-    };
 
     private Tag[] mTags = {
             new Tag(Tag.KEY_BUILDING, Tag.VALUE_YES),
-            new Tag(Tag.KEY_BUILDING_LEVELS, "2"),
-            new Tag(Tag.KEY_ROOF_LEVELS, "2"),
-            new Tag(Tag.KEY_ROOF_COLOR, "#99ffff"),
+            new Tag(Tag.KEY_BUILDING_LEVELS, "1"),
+            new Tag(Tag.KEY_ROOF_LEVELS, "1"),
+            new Tag(Tag.KEY_ROOF_COLOR, "red"),
             new Tag(Tag.KEY_BUILDING_COLOR, "white")
+    };
+
+    private Tag[] mTagsRound = {
+            new Tag(Tag.KEY_BUILDING, Tag.VALUE_YES),
+            new Tag(Tag.KEY_BUILDING_LEVELS, "1"),
+            new Tag(Tag.KEY_ROOF_COLOR, "red"),
+            new Tag(Tag.KEY_BUILDING_COLOR, "white")
+    };
+
+    private Tag[] mRoofShapes = {
+            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_FLAT),
+            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_SKILLION),
+            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_PYRAMIDAL),
+            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_HIPPED),
+            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_GABLED),
+            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_GAMBREL),
+            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_MANSARD),
+            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_SALTBOX),
+            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_ROUND),
+    };
+
+    private Tag[] mRoundRoofShapes = {
+            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_ONION),
+            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_DOME)
     };
 
     private void addExtrusions(TestTileSource tileSource) {
@@ -100,12 +109,55 @@ public class ExtrusionsTest extends GdxMapApp {
                 tileSource.addMapElement(building);
 
                 x += 64;
-                if (x >= Tile.SIZE) {
-                    y += 64;
+                if (x >= Tile.SIZE / 3) {
+                    y += 32;
                     x = 0;
                     if (y >= Tile.SIZE) {
                         x = 32;
                         y = 32;
+                    }
+                }
+            }
+
+            if (MODE == 4) {
+                e = new MapElement();
+                e.startPolygon();
+                applyGroundShape(GroundShape.HEXAGON, e);
+                e.tags.set(mTagsRound);
+
+                {
+                    building = new MapElement(e);
+                    building = building.translate(x, y);
+                    building.tags.add(new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_DOME));
+                    building.tags.add(new Tag(Tag.KEY_ROOF_LEVELS, "1"));
+                    tileSource.addMapElement(building);
+
+                    x += 64;
+                    if (x >= Tile.SIZE / 3) {
+                        y += 32;
+                        x = 0;
+                        if (y >= Tile.SIZE) {
+                            x = 32;
+                            y = 32;
+                        }
+                    }
+                }
+
+                {
+                    building = new MapElement(e);
+                    building = building.translate(x, y);
+                    building.tags.add(new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_ONION));
+                    building.tags.add(new Tag(Tag.KEY_ROOF_LEVELS, "2"));
+                    tileSource.addMapElement(building);
+
+                    x += 32;
+                    if (x >= Tile.SIZE / 6) {
+                        y += 32;
+                        x = 0;
+                        if (y >= Tile.SIZE) {
+                            x = 32;
+                            y = 32;
+                        }
                     }
                 }
             }
@@ -122,6 +174,9 @@ public class ExtrusionsTest extends GdxMapApp {
                 break;
             case SHAPE_L:
                 shapeLGround(e);
+                break;
+            case SHAPE_M:
+                shapeMGround(e);
                 break;
             case SHAPE_O:
                 shapeOGround(e);
@@ -148,7 +203,7 @@ public class ExtrusionsTest extends GdxMapApp {
     }
 
     private void hexagonGround(MapElement e) {
-        hexagonGround(e, 10, 0, 0);
+        hexagonGround(e, 4, 0, 0);
     }
 
     private void hexagonGround(MapElement e, float unit, float shiftX, float shiftY) {
@@ -174,11 +229,24 @@ public class ExtrusionsTest extends GdxMapApp {
     private void shapeLGround(MapElement e) {
         e.addPoint(0, 0);
         e.addPoint(12, 0);
-        e.addPoint(20, 0);
-        e.addPoint(20, 15);
+        e.addPoint(40, 0);
+        e.addPoint(40, 10);
+        e.addPoint(30, 10);
+        e.addPoint(30, 20);
+        e.addPoint(0, 20);
+    }
+
+    private void shapeMGround(MapElement e) {
+        e.addPoint(0, 0);
+        e.addPoint(10, 0);
+        e.addPoint(10, 5);
+        e.addPoint(20, 5);
+        e.addPoint(20, 20);
+        e.addPoint(37, 20);
+        e.addPoint(37, 25);
+        e.addPoint(12, 25);
         e.addPoint(12, 15);
-        e.addPoint(12, 10);
-        e.addPoint(0, 10);
+        e.addPoint(0, 15);
     }
 
     private void shapeOGround(MapElement e) {
@@ -250,14 +318,23 @@ public class ExtrusionsTest extends GdxMapApp {
     }
 
     private void testGround(MapElement e) {
-        e.addPoint(39.967926f, 35.67258f);
-        e.addPoint(6.667015f, 38.9533f);
-        e.addPoint(4.519531f, 25.69272f);
-        e.addPoint(1.253567f, 5.45771f);
-        e.addPoint(0.701783f, 2.0393f);
-        e.addPoint(20.804614f, 0.0204f);
-        e.addPoint(22.743317f, 10.80325f);
-        e.addPoint(38.178354f, 9.77085f);
+        float x = 100;
+        e.addPoint(208.56958f, -35.20929f + x);
+        e.addPoint(224.00461f, -34.291678f + x);
+        e.addPoint(223.84058f, -22.546248f + x);
+        e.addPoint(259.84075f, -20.068697f + x);
+        e.addPoint(266.2832f, -12.131365f + x);
+        e.addPoint(265.2542f, -1.9688354f + x);
+
+        e.addPoint(257.90205f, 2.7109718f + x);
+        e.addPoint(239.30544f, 1.7933628f + x);
+        e.addPoint(238.21677f, 14.295781f + x);
+        e.addPoint(211.1197f, 13.14877f + x);
+        e.addPoint(211.20918f, 11.2676735f + x);
+
+        e.addPoint(165.70938f, 8.170745f + x);
+        e.addPoint(168.27443f, -22.087442f + x);
+        e.addPoint(207.63005f, -19.242848f + x);
     }
 
     @Override
@@ -272,7 +349,7 @@ public class ExtrusionsTest extends GdxMapApp {
         buildingLayer.getExtrusionRenderer().getSun().updatePosition();
 
         mMap.layers().add(buildingLayer);
-        mMap.layers().add(new TileGridLayer(mMap));
+//        mMap.layers().add(new TileGridLayer(mMap));
 
         mMap.setTheme(VtmThemes.DEFAULT);
 

@@ -44,4 +44,25 @@ public class GeometryTest {
                     + GeometryUtils.dotProduct(p, 0, 2, 4));
         }
     }
+
+    @Test
+    public void testDistancePointLine2D() {
+        float[] pP = {1, 0};
+        float[] pL = {0, 0};
+        float[] vL = {1, 1};
+
+        float distance = GeometryUtils.distancePointLine2D(pP, pL, vL);
+        Assert.assertEquals(distance, Math.sqrt(2) / 2, 0.00001);
+    }
+
+    @Test
+    public void testNearestPointOnLine2D() {
+        float[] pP = {1, 0};
+        float[] pL = {0, 1};
+        float[] vL = {-1, 0};
+
+        float[] point = GeometryUtils.nearestPointOnLine2D(pP, pL, vL);
+        Assert.assertEquals(point[0], 1, 0.00001);
+        Assert.assertEquals(point[1], 1, 0.00001);
+    }
 }
