@@ -43,7 +43,7 @@ public class ExtrusionsTest extends GdxMapApp {
      * 2: default roof, all grounds
      * 3: iterate all
      */
-    private static final int MODE = 0;
+    private static final int MODE = 2;
 
 
     private Tag[] mTags = {
