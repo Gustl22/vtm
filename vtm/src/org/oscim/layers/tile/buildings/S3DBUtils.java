@@ -457,7 +457,7 @@ public final class S3DBUtils {
             TreeMap<Integer, float[]> ridgeLines = new TreeMap<>();
             HashSet<Integer> gablePoints = new HashSet<>(); // Only used if gabled
             Integer currentRidgeInd = null;
-            boolean isOdd = false;
+            boolean isActive = true;
             for (int k = 0; k < groundSize; k++) {
                 int shift = (k + indexStart) % groundSize;
                 byte direction = simpleAngles.get(shift);
@@ -498,13 +498,13 @@ public final class S3DBUtils {
                         }
                         ridgePoints.put(indexPrevious2, positionRidgeA);
 
-                        if (isOdd) {
+                        if (!isActive) {
                             // Remove previous ridge, if exists
                             ridgePoints.remove(indexPrevious);
                             ridgeLines.remove(indexPrevious);
                         }
                     }
-                    isOdd = false;
+                    isActive = true;
 
                     // Check two next corners
                     Integer indexNext = getIndexNextRightTurn(shift, simpleAngles);
@@ -536,7 +536,7 @@ public final class S3DBUtils {
                                     gablePoints.add(indexNext);
                                 }
                             } else
-                                isOdd = true; // Next is no ridge point cause indexNext2 is one!
+                                isActive = false; // Next is no ridge point cause indexNext2 is one!
                             ridgePoints.put(indexNext, positionRidgeB);
                         } else {
                             positionRidgeB = ridgePoints.get(indexNext);
@@ -595,17 +595,17 @@ public final class S3DBUtils {
 
                     // Reset ridges
                     currentRidgeInd = null;
-                    //isOdd = false;
+                    //isActive = true;
                     continue;
                 }
                 // Regular right angle (right turn)
-                if (isOdd) {
-                    isOdd = false;
+                if (!isActive) {
+                    isActive = true;
                     continue;
                 }
-                boolean nextOdd = false;
+                boolean nextActive = true;
                 if (simpleAngles.get(shift) > 1 && countConcavAngles == 0) {
-                    nextOdd = true;
+                    nextActive = false;
                 }
                 if (ridgePoints.containsKey(shift) && ridgeLines.containsKey(shift)) {
                     currentRidgeInd = shift;
@@ -635,7 +635,7 @@ public final class S3DBUtils {
                         intersection = GeometryUtils.intersectionLines2D(ridgePoints.get(currentRidgeInd), ridgeLines.get(currentRidgeInd), point3Fs.get(shift), bisections.get(shift));
                         addSnapRidgePoint(shift, intersection, ridgePoints);
                     }
-                    if (nextOdd) {
+                    if (!nextActive) {
                         currentRidgeInd = null;
                     } else {
                         ridgeLines.put(shift, normVectors.get(shift));
@@ -657,7 +657,7 @@ public final class S3DBUtils {
                     }
                     addSnapRidgePoint(shift, ridgePos, ridgePoints);
                 }
-                isOdd = nextOdd;
+                isActive = nextActive;
             }
 
             if (ridgePoints.isEmpty()) {
