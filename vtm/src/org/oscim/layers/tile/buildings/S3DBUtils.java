@@ -599,13 +599,15 @@ public final class S3DBUtils {
                 } else {
                     // Regular right angle (right turn)
                     if (!isActive) {
-                        isActive = true;
-                        continue;
+                        nextActive = true;
                     } else {
+                        // Active edge / vertex
                         if (simpleAngles.get(shift) > 1 && countConcavAngles == 0) {
+                            // Next edge is inactive cause of convex ground shape
                             nextActive = false;
                         }
                         if (ridgePoints.containsKey(shift) && ridgeLines.containsKey(shift)) {
+                            // If already has a ridge, continue
                             currentRidgeInd = shift;
                         } else if (currentRidgeInd != null) {
                             float[] intersection;
@@ -616,30 +618,23 @@ public final class S3DBUtils {
                                 addSnapRidgePoint(shift, intersection, ridgePoints);
                             } else if (isGabled && countConcavAngles == 0 && direction == 2) {
                                 // If is gabled, then use the normal line as intersection instead of bisection, but if the angle is not right, this is usually not a gable point
-                                if (ridgePoints.get(currentRidgeInd) == null) {
-                                    log.debug("Gabled intersection calc failed");
-                                    currentRidgeInd = null;
-                                    continue;
-                                }
                                 intersection = GeometryUtils.intersectionLines2D(ridgePoints.get(currentRidgeInd), ridgeLines.get(currentRidgeInd), point3Fs.get(shift), normVectors.get(shift));
-                                if (intersection == null) {
-                                    log.debug("Gabled intersection calc failed");
-                                    currentRidgeInd = null;
-                                    continue;
-                                }
                                 gablePoints.add(shift);
                                 ridgePoints.put(shift, intersection);
                             } else {
+                                // Default procedure, if has currentRidgeIndex and no gable and no next rigdes.
                                 intersection = GeometryUtils.intersectionLines2D(ridgePoints.get(currentRidgeInd), ridgeLines.get(currentRidgeInd), point3Fs.get(shift), bisections.get(shift));
                                 addSnapRidgePoint(shift, intersection, ridgePoints);
                             }
                             if (!nextActive) {
+                                // Only on convex shapes
                                 currentRidgeInd = null;
                             } else {
                                 ridgeLines.put(shift, normVectors.get(shift));
                                 currentRidgeInd = shift;
                             }
                         } else {
+                            // Regular convex ridge
                             Integer indexNext = getIndexNextRightTurn(shift, simpleAngles);
                             if (indexNext == null) continue;
                             currentRidgeInd = shift;
@@ -647,6 +642,7 @@ public final class S3DBUtils {
                                 if (countConcavAngles == 0)
                                     ridgeLines.put(shift, normVectors.get(indexNext));
                                 else
+                                    // Use norm vector to ensure cut with next
                                     ridgeLines.put(shift, normVectors.get(shift));
                             }
 
