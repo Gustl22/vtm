@@ -639,11 +639,11 @@ public final class S3DBUtils {
                             if (indexNext == null) continue;
                             currentRidgeInd = shift;
                             if (!ridgeLines.containsKey(shift)) {
-                                if (countConcavAngles == 0)
-                                    ridgeLines.put(shift, normVectors.get(indexNext));
-                                else
-                                    // Use norm vector to ensure cut with next
-                                    ridgeLines.put(shift, normVectors.get(shift));
+//                                if (countConcavAngles == 0)
+                                ridgeLines.put(shift, normVectors.get(indexNext));
+//                                else
+//                                    // Use norm vector to ensure cut with next
+//                                    ridgeLines.put(shift, normVectors.get(shift));
                             }
 
                             float[] ridgePos = intersections.get(shift);
