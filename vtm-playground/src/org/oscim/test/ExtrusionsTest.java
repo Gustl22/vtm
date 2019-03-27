@@ -30,12 +30,6 @@ public class ExtrusionsTest extends GdxMapApp {
         HEXAGON, RECTANGLE, SHAPE_L, SHAPE_M, SHAPE_O, SHAPE_T, SHAPE_U, SHAPE_V, SHAPE_X, SHAPE_Z, TEST
     }
 
-    // Default ground shape
-    public GroundShape mGroundShape = GroundShape.SHAPE_L;
-
-    // Default roof shape
-    public Tag mRoofShape = new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_HIPPED);
-
     /**
      * Iterate through ground or roof shapes.
      * 0: default ground and roof
@@ -43,8 +37,30 @@ public class ExtrusionsTest extends GdxMapApp {
      * 2: default roof, all grounds
      * 3: iterate all
      */
-    private static final int MODE = 2;
+    private static final int MODE = 0;
 
+    // Default ground shape
+    public GroundShape mGroundShape = GroundShape.SHAPE_L;
+
+    // Default roof shape
+    public Tag mRoofShape = new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_SALTBOX);
+
+    private Tag[] mRoofShapes = {
+            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_FLAT),
+            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_SKILLION),
+            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_HIPPED),
+            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_GABLED),
+            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_GAMBREL),
+            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_MANSARD),
+            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_SALTBOX),
+            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_ROUND),
+    };
+
+    private Tag[] mRoundRoofShapes = {
+            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_PYRAMIDAL),
+            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_ONION),
+            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_DOME)
+    };
 
     private Tag[] mTags = {
             new Tag(Tag.KEY_BUILDING, Tag.VALUE_YES),
@@ -61,30 +77,13 @@ public class ExtrusionsTest extends GdxMapApp {
             new Tag(Tag.KEY_BUILDING_COLOR, "white")
     };
 
-    private Tag[] mRoofShapes = {
-            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_FLAT),
-            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_SKILLION),
-            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_PYRAMIDAL),
-            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_HIPPED),
-            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_GABLED),
-            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_GAMBREL),
-            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_MANSARD),
-            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_SALTBOX),
-            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_ROUND),
-    };
-
-    private Tag[] mRoundRoofShapes = {
-            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_ONION),
-            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_DOME)
-    };
-
     private void addExtrusions(TestTileSource tileSource) {
         Tag[] roofShapes;
         GroundShape[] groundShapes;
         if (MODE == 0) {
             roofShapes = new Tag[]{mRoofShape};
             groundShapes = new GroundShape[]{mGroundShape};
-        } else if (MODE == 1) {
+        } else if (MODE == 1 || MODE == 4) {
             roofShapes = mRoofShapes;
             groundShapes = new GroundShape[]{mGroundShape};
         } else if (MODE == 2) {
@@ -100,6 +99,7 @@ public class ExtrusionsTest extends GdxMapApp {
             e.startPolygon();
             applyGroundShape(ground, e);
             e.tags.set(mTags);
+            e.tags.add(new Tag(Tag.KEY_ROOF_LEVELS, "1"));
 
             MapElement building;
             for (Tag roofShape : roofShapes) {
@@ -118,46 +118,33 @@ public class ExtrusionsTest extends GdxMapApp {
                     }
                 }
             }
+        }
 
-            if (MODE == 4) {
-                e = new MapElement();
-                e.startPolygon();
-                applyGroundShape(GroundShape.HEXAGON, e);
-                e.tags.set(mTagsRound);
+        if (MODE == 4) {
+            MapElement e = new MapElement();
+            e.startPolygon();
+            applyGroundShape(GroundShape.HEXAGON, e);
+            e.tags.set(mTagsRound);
 
-                {
-                    building = new MapElement(e);
-                    building = building.translate(x, y);
-                    building.tags.add(new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_DOME));
-                    building.tags.add(new Tag(Tag.KEY_ROOF_LEVELS, "1"));
-                    tileSource.addMapElement(building);
-
-                    x += 64;
-                    if (x >= Tile.SIZE / 3) {
-                        y += 32;
-                        x = 0;
-                        if (y >= Tile.SIZE) {
-                            x = 32;
-                            y = 32;
-                        }
-                    }
-                }
-
-                {
-                    building = new MapElement(e);
-                    building = building.translate(x, y);
-                    building.tags.add(new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_ONION));
+            for (Tag roofShape : mRoundRoofShapes) {
+                MapElement building = new MapElement(e);
+                building = building.translate(x, y);
+                building.tags.add(roofShape);
+                if (roofShape.value.equals(Tag.VALUE_ONION))
                     building.tags.add(new Tag(Tag.KEY_ROOF_LEVELS, "2"));
-                    tileSource.addMapElement(building);
+                else
+                    building.tags.add(new Tag(Tag.KEY_ROOF_LEVELS, "1"));
 
-                    x += 32;
-                    if (x >= Tile.SIZE / 6) {
-                        y += 32;
-                        x = 0;
-                        if (y >= Tile.SIZE) {
-                            x = 32;
-                            y = 32;
-                        }
+
+                tileSource.addMapElement(building);
+
+                x += 64;
+                if (x >= Tile.SIZE / 3) {
+                    y += 32;
+                    x = 0;
+                    if (y >= Tile.SIZE) {
+                        x = 32;
+                        y = 32;
                     }
                 }
             }
@@ -227,6 +214,16 @@ public class ExtrusionsTest extends GdxMapApp {
     }
 
     private void shapeLGround(MapElement e) {
+        e.addPoint(0, 0);
+        e.addPoint(12, 0);
+        e.addPoint(20, 0);
+        e.addPoint(20, 15);
+        e.addPoint(12, 15);
+        e.addPoint(12, 10);
+        e.addPoint(0, 10);
+    }
+
+    private void shapeL2Ground(MapElement e) {
         e.addPoint(0, 0);
         e.addPoint(12, 0);
         e.addPoint(40, 0);

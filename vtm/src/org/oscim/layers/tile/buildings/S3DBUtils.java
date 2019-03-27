@@ -609,6 +609,7 @@ public final class S3DBUtils {
                         if (ridgePoints.containsKey(shift) && ridgeLines.containsKey(shift)) {
                             // If already has a ridge, continue
                             currentRidgeInd = shift;
+                            nextActive = false;
                         } else if (currentRidgeInd != null) {
                             float[] intersection;
                             Integer indexNext = getIndexNextRightTurn(shift, simpleAngles);
@@ -621,6 +622,7 @@ public final class S3DBUtils {
                                 intersection = GeometryUtils.intersectionLines2D(ridgePoints.get(currentRidgeInd), ridgeLines.get(currentRidgeInd), point3Fs.get(shift), normVectors.get(shift));
                                 gablePoints.add(shift);
                                 ridgePoints.put(shift, intersection);
+                                //nextActive = false;
                             } else {
                                 // Default procedure, if has currentRidgeIndex and no gable and no next rigdes.
                                 intersection = GeometryUtils.intersectionLines2D(ridgePoints.get(currentRidgeInd), ridgeLines.get(currentRidgeInd), point3Fs.get(shift), bisections.get(shift));
@@ -653,6 +655,7 @@ public final class S3DBUtils {
                                 gablePoints.add(shift);
                             }
                             addSnapRidgePoint(shift, ridgePos, ridgePoints);
+                            //nextActive = false;
                         }
                     }
                 }
