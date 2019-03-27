@@ -37,7 +37,7 @@ public class ExtrusionsTest extends GdxMapApp {
      * 2: default roof, all grounds
      * 3: iterate all
      */
-    private static final int MODE = 0;
+    private static final int MODE = 4;
 
     // Default ground shape
     public GroundShape mGroundShape = GroundShape.SHAPE_L;
@@ -48,6 +48,7 @@ public class ExtrusionsTest extends GdxMapApp {
     private Tag[] mRoofShapes = {
             new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_FLAT),
             new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_SKILLION),
+            new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_PYRAMIDAL),
             new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_HIPPED),
             new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_GABLED),
             new Tag(Tag.KEY_ROOF_SHAPE, Tag.VALUE_GAMBREL),
