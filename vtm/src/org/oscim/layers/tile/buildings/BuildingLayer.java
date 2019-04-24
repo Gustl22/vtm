@@ -34,12 +34,16 @@ import org.oscim.renderer.OffscreenRenderer;
 import org.oscim.renderer.OffscreenRenderer.Mode;
 import org.oscim.renderer.bucket.ExtrusionBuckets;
 import org.oscim.renderer.bucket.RenderBuckets;
-import org.oscim.renderer.light.ShadowRenderer;
+import org.oscim.renderer.light.AerialExtrusionRenderer;
 import org.oscim.theme.styles.ExtrusionStyle;
 import org.oscim.theme.styles.RenderStyle;
 import org.oscim.utils.geom.GeometryUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class BuildingLayer extends Layer implements TileLoaderThemeHook, ZoomLimiter.IZoomLimiter {
 
@@ -117,9 +121,10 @@ public class BuildingLayer extends Layer implements TileLoaderThemeHook, ZoomLim
 
         mRenderer = mExtrusionRenderer = new BuildingRenderer(tileLayer.tileRenderer(), mZoomLimiter, mesh, TRANSLUCENT);
         // TODO Allow shadow and POST_AA at same time
-        if (shadow)
-            mRenderer = new ShadowRenderer(mExtrusionRenderer);
-        else if (POST_AA)
+        if (shadow) {
+            mRenderer = new AerialExtrusionRenderer(mExtrusionRenderer);
+//            mRenderer = new ShadowRenderer(mExtrusionRenderer);
+        } else if (POST_AA)
             mRenderer = new OffscreenRenderer(Mode.SSAO_FXAA, mRenderer);
     }
 

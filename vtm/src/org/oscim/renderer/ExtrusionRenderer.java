@@ -54,7 +54,7 @@ public abstract class ExtrusionRenderer extends LayerRenderer {
 
     public ExtrusionRenderer(boolean mesh, boolean translucent) {
         mMesh = mesh;
-        mTranslucent = false;
+        mTranslucent = translucent;
 
         mSun = new Sun();
     }
@@ -102,8 +102,6 @@ public abstract class ExtrusionRenderer extends LayerRenderer {
          */
         int uMVP;
 
-        int uMV;
-
         /**
          * The height limit of extrusions as uniform.
          */
@@ -118,7 +116,6 @@ public abstract class ExtrusionRenderer extends LayerRenderer {
                 return;
 
             uMVP = getUniform("u_mvp");
-            uMV = getUniform("u_mv");
             uColor = getUniform("u_color");
             uAlpha = getUniform("u_alpha");
             uMode = getUniform("u_mode");
@@ -319,9 +316,6 @@ public abstract class ExtrusionRenderer extends LayerRenderer {
                         gl.depthFunc(GL.LEQUAL);
                         v.mvp.addDepthOffset(100);
                         v.mvp.setAsUniform(s.uMVP);
-//                        v.mv.addDepthOffset(100);
-//                        v.mv.setAsUniform(s.uMV);
-//                        v.proj.setAsUniform(s.uMV);
                     }
 
                     gl.uniform1i(s.uMode, 3);
@@ -374,26 +368,13 @@ public abstract class ExtrusionRenderer extends LayerRenderer {
         v.mvp.setTransScale(x, y, scale / COORD_SCALE);
         v.mvp.setValue(10, scale / 10);
 
-//        float[] tmpa = new float[16];
-//        v.view.get(tmpa);
-//        v.mv.copy(v.mvp);
-//        v.mv.get(tmpa);
-        v.mvp.multiplyLhs(v.view);
-//        v.mv.get(tmpa);
-//        v.mv.multiplyMM(v.view, v.mvp);
-        v.mvp.setAsUniform(s.uMV);
-
-//        v.proj.get(tmpa);
-//        v.viewproj.get(tmpa);
-
         // Create shadow map converter
         // TODO may code it cleaner
         if (s instanceof ShadowRenderer.Shader)
             ((ShadowRenderer.Shader) s).setLightMVP(v.mvp);
 
         // Apply model matrix to VP-Matrix
-//        v.mvp.multiplyLhs(v.viewproj);
-        v.mvp.multiplyLhs(v.proj);
+        v.mvp.multiplyLhs(v.viewproj);
 
         if (mTranslucent) {
             /* should avoid z-fighting of overlapping
@@ -401,7 +382,6 @@ public abstract class ExtrusionRenderer extends LayerRenderer {
             int zoom = (1 << z);
             int delta = (int) (l.x * zoom) % 4 + (int) (l.y * zoom) % 4 * 4;
             v.mvp.addDepthOffset(delta);
-//            v.mv.addDepthOffset(delta);
         }
         v.mvp.setAsUniform(s.uMVP);
     }

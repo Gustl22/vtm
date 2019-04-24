@@ -49,7 +49,6 @@ public class GLViewport extends Viewport {
      * For temporary use, to setup MVP-Matrix
      */
     public final GLMatrix mvp = new GLMatrix();
-    public final GLMatrix mv = new GLMatrix();
 
     public final MapPosition pos = mPos;
 
@@ -115,7 +114,6 @@ public class GLViewport extends Viewport {
                 break;
         }
         mvp.setTransScale(x, y, invScale);
-//        mv.setTransScale(x, y, invScale);
         mvp.multiplyLhs(proj);
     }
 

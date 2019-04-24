@@ -186,9 +186,7 @@ public class VectorTileRenderer extends TileRenderer {
         float scale = (float) (v.pos.scale / (1 << tile.zoomLevel));
 
         v.mvp.setTransScale(x, y, scale / COORD_SCALE);
-//        v.mv.setTransScale(x, y, scale / COORD_SCALE);
         v.mvp.multiplyLhs(v.viewproj);
-//        v.mv.multiplyLhs(v.view);
 
         mClipMVP.setTransScale(x, y, scale / COORD_SCALE);
         mClipMVP.multiplyLhs(mClipProj);
