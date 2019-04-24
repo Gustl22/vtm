@@ -16,8 +16,8 @@ varying vec4 v_shadow_coords;
 #endif
 
 // Fog
-const float densitiy = 0.00005;
-const float gradient = 1.6;
+const float densitiy = 0.007;
+const float gradient = 1.5;
 
 void main() {
     // change height by u_alpha
@@ -60,15 +60,20 @@ void main() {
     #endif
 
     // Fog
-    float distance = length((u_mv * pos).xyz);
+    float distance = -(u_mv * pos).z;// Direct distance from camera
     float visibility = clamp(exp(-pow((distance * densitiy), gradient)), 0.0, 1.0);
+    visibility = clamp((distance / 4000.0), 0.0, 1.0);
 
     // extreme fake-ssao by height
     l += (clamp(a_pos.z / 2048.0, 0.0, 0.1) - 0.05);
     color = vec4(u_color.rgb * (clamp(l, 0.0, 1.0)), u_color.a) * u_alpha;
-    color = mix(vec4(10, 15, 10, 1.0), color, visibility);
+    color = mix(vec4(1.0, 0.0, 0.3, 1.0), color, visibility);
 
-    #ifdef SHADOW
+    if (distance < 0){
+        color = vec4(0.0, 0.0, 1.0, 1.0);
+    }
+
+        #ifdef SHADOW
     if (hasLight) {
         vec4 positionFromLight = u_light_mvp * a_pos;
         v_shadow_coords = (positionFromLight / positionFromLight.w);
@@ -76,7 +81,7 @@ void main() {
         // Discard shadow on unlighted faces
         v_shadow_coords = vec4(-1.0);
     }
-    #endif
+        #endif
 }
 
 $$
@@ -159,4 +164,6 @@ void main() {
         #else
     gl_FragColor = color;
     #endif
+
+    //    gl_FragColor = vec4(vec3(gl_FragColor) * gl_FragCoord.z, gl_FragColor.w);
 }

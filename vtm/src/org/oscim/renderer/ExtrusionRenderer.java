@@ -54,7 +54,7 @@ public abstract class ExtrusionRenderer extends LayerRenderer {
 
     public ExtrusionRenderer(boolean mesh, boolean translucent) {
         mMesh = mesh;
-        mTranslucent = translucent;
+        mTranslucent = false;
 
         mSun = new Sun();
     }
@@ -320,8 +320,8 @@ public abstract class ExtrusionRenderer extends LayerRenderer {
                         v.mvp.addDepthOffset(100);
                         v.mvp.setAsUniform(s.uMVP);
 //                        v.mv.addDepthOffset(100);
-                        v.mv.setAsUniform(s.uMV);
-                        v.proj.setAsUniform(s.uMV);
+//                        v.mv.setAsUniform(s.uMV);
+//                        v.proj.setAsUniform(s.uMV);
                     }
 
                     gl.uniform1i(s.uMode, 3);
@@ -370,13 +370,21 @@ public abstract class ExtrusionRenderer extends LayerRenderer {
         float x = (float) ((l.x - v.pos.x) * curScale);
         float y = (float) ((l.y - v.pos.y) * curScale);
 
-        v.mv.setTransScale(x, y, scale / COORD_SCALE);
-        v.mv.setValue(10, scale / 10);
-        v.mv.multiplyLhs(v.view);
-
         // Create model matrix
         v.mvp.setTransScale(x, y, scale / COORD_SCALE);
         v.mvp.setValue(10, scale / 10);
+
+//        float[] tmpa = new float[16];
+//        v.view.get(tmpa);
+//        v.mv.copy(v.mvp);
+//        v.mv.get(tmpa);
+        v.mvp.multiplyLhs(v.view);
+//        v.mv.get(tmpa);
+//        v.mv.multiplyMM(v.view, v.mvp);
+        v.mvp.setAsUniform(s.uMV);
+
+//        v.proj.get(tmpa);
+//        v.viewproj.get(tmpa);
 
         // Create shadow map converter
         // TODO may code it cleaner
@@ -384,7 +392,8 @@ public abstract class ExtrusionRenderer extends LayerRenderer {
             ((ShadowRenderer.Shader) s).setLightMVP(v.mvp);
 
         // Apply model matrix to VP-Matrix
-        v.mvp.multiplyLhs(v.viewproj);
+//        v.mvp.multiplyLhs(v.viewproj);
+        v.mvp.multiplyLhs(v.proj);
 
         if (mTranslucent) {
             /* should avoid z-fighting of overlapping
@@ -392,10 +401,9 @@ public abstract class ExtrusionRenderer extends LayerRenderer {
             int zoom = (1 << z);
             int delta = (int) (l.x * zoom) % 4 + (int) (l.y * zoom) % 4 * 4;
             v.mvp.addDepthOffset(delta);
-            v.mv.addDepthOffset(delta);
+//            v.mv.addDepthOffset(delta);
         }
         v.mvp.setAsUniform(s.uMVP);
-        v.mv.setAsUniform(s.uMV);
     }
 
     public void setShader(Shader shader) {

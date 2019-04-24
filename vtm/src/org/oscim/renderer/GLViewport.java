@@ -115,7 +115,7 @@ public class GLViewport extends Viewport {
                 break;
         }
         mvp.setTransScale(x, y, invScale);
-        mv.setTransScale(x, y, invScale);
+//        mv.setTransScale(x, y, invScale);
         mvp.multiplyLhs(proj);
     }
 

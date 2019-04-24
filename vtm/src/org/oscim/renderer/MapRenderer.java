@@ -128,7 +128,7 @@ public class MapRenderer {
             /* modify this to scale only the view, to see
              * which tiles are rendered */
             mViewport.mvp.setScale(0.5f, 0.5f, 1);
-            mViewport.mv.setScale(0.5f, 0.5f, 1);
+//            mViewport.mv.setScale(0.5f, 0.5f, 1);
             mViewport.view.multiplyLhs(mViewport.mvp);
             mViewport.viewproj.multiplyLhs(mViewport.mvp);
             mViewport.proj.multiplyLhs(mViewport.mvp);
@@ -136,7 +136,7 @@ public class MapRenderer {
 
         if (this.viewPortScale != 1) {
             mViewport.mvp.setScale(this.viewPortScale, this.viewPortScale, 1);
-            mViewport.mv.setScale(this.viewPortScale, this.viewPortScale, 1);
+//            mViewport.mv.setScale(this.viewPortScale, this.viewPortScale, 1);
             mViewport.view.multiplyLhs(mViewport.mvp);
             mViewport.viewproj.multiplyLhs(mViewport.mvp);
             mViewport.proj.multiplyLhs(mViewport.mvp);
