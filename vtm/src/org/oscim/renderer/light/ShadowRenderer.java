@@ -16,13 +16,13 @@
 package org.oscim.renderer.light;
 
 import org.oscim.backend.GL;
+import org.oscim.renderer.ExtrusionLayerRenderer;
 import org.oscim.renderer.ExtrusionRenderer;
 import org.oscim.renderer.GLMatrix;
 import org.oscim.renderer.GLShader;
 import org.oscim.renderer.GLState;
 import org.oscim.renderer.GLUtils;
 import org.oscim.renderer.GLViewport;
-import org.oscim.renderer.LayerRenderer;
 import org.oscim.renderer.MapRenderer;
 import org.oscim.utils.math.MathUtils;
 import org.slf4j.Logger;
@@ -32,12 +32,10 @@ import java.nio.FloatBuffer;
 
 import static org.oscim.backend.GLAdapter.gl;
 
-public class ShadowRenderer extends LayerRenderer {
+public class ShadowRenderer extends ExtrusionLayerRenderer {
     private static final Logger log = LoggerFactory.getLogger(ShadowRenderer.class);
 
     public static boolean DEBUG = false;
-
-    private ExtrusionRenderer mRenderer;
 
     private float SHADOWMAP_RESOLUTION = 2048f;
     private int mGroundQuad;
@@ -141,12 +139,8 @@ public class ShadowRenderer extends LayerRenderer {
         }
     }
 
-    public ShadowRenderer(ExtrusionRenderer renderer) {
-        setRenderer(renderer);
-    }
-
-    public void setRenderer(ExtrusionRenderer renderer) {
-        mRenderer = renderer;
+    public ShadowRenderer(ExtrusionLayerRenderer renderer) {
+        super(renderer);
     }
 
     /**
@@ -188,7 +182,7 @@ public class ShadowRenderer extends LayerRenderer {
         // Shader
         mGroundShader = new GroundShader("extrusion_shadow_ground");
         mLightShader = new ExtrusionRenderer.Shader("extrusion_shadow_light");
-        if (mRenderer.isMesh())
+        if (isMesh())
             mExtrusionShader = new Shader("extrusion_layer_mesh");
         else
             mExtrusionShader = new Shader("extrusion_layer_ext");

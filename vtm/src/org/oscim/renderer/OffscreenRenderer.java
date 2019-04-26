@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import static org.oscim.backend.GLAdapter.gl;
 
-public class OffscreenRenderer extends LayerRenderer {
+public class OffscreenRenderer extends ExtrusionLayerRenderer {
     static final Logger log = LoggerFactory.getLogger(OffscreenRenderer.class);
 
     public enum Mode {
@@ -61,7 +61,8 @@ public class OffscreenRenderer extends LayerRenderer {
 
     public final Mode mode;
 
-    public OffscreenRenderer(Mode mode, LayerRenderer renderer) {
+    public OffscreenRenderer(Mode mode, ExtrusionLayerRenderer renderer) {
+        super(renderer);
         this.mode = mode;
         if (mode == Mode.SSAO || mode == Mode.SSAO_FXAA)
             useDepthTexture = true;
@@ -153,12 +154,6 @@ public class OffscreenRenderer extends LayerRenderer {
         GLState.bindFramebuffer(fb);
         gl.depthMask(true);
         gl.clear(GL.DEPTH_BUFFER_BIT);
-    }
-
-    LayerRenderer mRenderer;
-
-    public void setRenderer(LayerRenderer renderer) {
-        mRenderer = renderer;
     }
 
     @Override

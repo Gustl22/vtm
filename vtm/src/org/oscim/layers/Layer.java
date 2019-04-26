@@ -37,6 +37,10 @@ public abstract class Layer {
         return mRenderer;
     }
 
+    public void setRenderer(LayerRenderer renderer) {
+        mRenderer = renderer;
+    }
+
     /**
      * Enabled layers will be considered for rendering and receive onMapUpdate()
      * calls when they implement MapUpdateListener.

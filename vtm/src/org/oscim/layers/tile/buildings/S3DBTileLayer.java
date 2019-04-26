@@ -21,8 +21,8 @@ import org.oscim.layers.tile.TileManager;
 import org.oscim.layers.tile.TileRenderer;
 import org.oscim.layers.tile.ZoomLimiter;
 import org.oscim.map.Map;
+import org.oscim.renderer.ExtrusionLayerRenderer;
 import org.oscim.renderer.GLViewport;
-import org.oscim.renderer.LayerRenderer;
 import org.oscim.renderer.OffscreenRenderer;
 import org.oscim.renderer.OffscreenRenderer.Mode;
 import org.oscim.tiling.TileSource;
@@ -63,7 +63,7 @@ public class S3DBTileLayer extends TileLayer {
     }
 
     public static class S3DBTileRenderer extends TileRenderer {
-        LayerRenderer mRenderer;
+        ExtrusionLayerRenderer mRenderer;
 
         public S3DBTileRenderer(TileManager manager, boolean fxaa, boolean ssao) {
             mRenderer = new BuildingRenderer(this, new ZoomLimiter(manager, MIN_ZOOM, MAX_ZOOM, MIN_ZOOM), true, false);

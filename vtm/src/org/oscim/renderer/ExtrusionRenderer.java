@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 import static org.oscim.backend.GLAdapter.gl;
 import static org.oscim.renderer.MapRenderer.COORD_SCALE;
 
-public abstract class ExtrusionRenderer extends LayerRenderer {
+public abstract class ExtrusionRenderer extends ExtrusionLayerRenderer {
     static final Logger log = LoggerFactory.getLogger(ExtrusionRenderer.class);
 
     // Don't draw extrusions which are covered by others
@@ -53,6 +53,7 @@ public abstract class ExtrusionRenderer extends LayerRenderer {
     private boolean mUseLight = true;
 
     public ExtrusionRenderer(boolean mesh, boolean translucent) {
+        super(null);
         mMesh = mesh;
         mTranslucent = translucent;
 
@@ -134,12 +135,19 @@ public abstract class ExtrusionRenderer extends LayerRenderer {
         return mShader;
     }
 
+    @Override
     public Sun getSun() {
         return mSun;
     }
 
+    @Override
     public boolean isMesh() {
         return mMesh;
+    }
+
+    @Override
+    public boolean isTranslucent() {
+        return mTranslucent;
     }
 
     @Override
@@ -386,6 +394,7 @@ public abstract class ExtrusionRenderer extends LayerRenderer {
         v.mvp.setAsUniform(s.uMVP);
     }
 
+    @Override
     public void setShader(Shader shader) {
         mShader = shader;
     }
@@ -394,6 +403,7 @@ public abstract class ExtrusionRenderer extends LayerRenderer {
         mZLimit = zLimit;
     }
 
+    @Override
     public void useLight(boolean useLight) {
         mUseLight = useLight;
     }

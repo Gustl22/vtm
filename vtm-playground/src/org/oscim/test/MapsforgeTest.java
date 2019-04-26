@@ -22,6 +22,7 @@ import org.oscim.core.Tile;
 import org.oscim.event.Event;
 import org.oscim.gdx.GdxMapApp;
 import org.oscim.gdx.poi3d.Poi3DLayer;
+import org.oscim.layers.AerialLayer;
 import org.oscim.layers.tile.buildings.BuildingLayer;
 import org.oscim.layers.tile.buildings.S3DBLayer;
 import org.oscim.layers.tile.vector.VectorTileLayer;
@@ -72,6 +73,7 @@ public class MapsforgeTest extends GdxMapApp {
             mMap.layers().add(new Poi3DLayer(mMap, l));
 
         mMap.layers().add(new LabelLayer(mMap, l));
+        mMap.layers().add(new AerialLayer(mMap, buildingLayer));
 
         DefaultMapScaleBar mapScaleBar = new DefaultMapScaleBar(mMap);
         mapScaleBar.setScaleBarMode(DefaultMapScaleBar.ScaleBarMode.BOTH);

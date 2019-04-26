@@ -29,12 +29,13 @@ import org.oscim.layers.tile.ZoomLimiter;
 import org.oscim.layers.tile.vector.VectorTileLayer;
 import org.oscim.layers.tile.vector.VectorTileLayer.TileLoaderThemeHook;
 import org.oscim.map.Map;
+import org.oscim.renderer.ExtrusionLayerRenderer;
 import org.oscim.renderer.ExtrusionRenderer;
 import org.oscim.renderer.OffscreenRenderer;
 import org.oscim.renderer.OffscreenRenderer.Mode;
 import org.oscim.renderer.bucket.ExtrusionBuckets;
 import org.oscim.renderer.bucket.RenderBuckets;
-import org.oscim.renderer.light.AerialExtrusionRenderer;
+import org.oscim.renderer.light.ShadowRenderer;
 import org.oscim.theme.styles.ExtrusionStyle;
 import org.oscim.theme.styles.RenderStyle;
 import org.oscim.utils.geom.GeometryUtils;
@@ -75,6 +76,7 @@ public class BuildingLayer extends Layer implements TileLoaderThemeHook, ZoomLim
     protected java.util.Map<Integer, List<BuildingElement>> mBuildings = new HashMap<>();
 
     protected final ExtrusionRenderer mExtrusionRenderer;
+    protected ExtrusionLayerRenderer mRenderer;
 
     private final ZoomLimiter mZoomLimiter;
 
@@ -122,8 +124,7 @@ public class BuildingLayer extends Layer implements TileLoaderThemeHook, ZoomLim
         mRenderer = mExtrusionRenderer = new BuildingRenderer(tileLayer.tileRenderer(), mZoomLimiter, mesh, TRANSLUCENT);
         // TODO Allow shadow and POST_AA at same time
         if (shadow) {
-            mRenderer = new AerialExtrusionRenderer(mExtrusionRenderer);
-//            mRenderer = new ShadowRenderer(mExtrusionRenderer);
+            mRenderer = new ShadowRenderer(mExtrusionRenderer);
         } else if (POST_AA)
             mRenderer = new OffscreenRenderer(Mode.SSAO_FXAA, mRenderer);
     }
@@ -275,6 +276,14 @@ public class BuildingLayer extends Layer implements TileLoaderThemeHook, ZoomLim
      */
     public ExtrusionRenderer getExtrusionRenderer() {
         return mExtrusionRenderer;
+    }
+
+    /**
+     * Get the ExtrusionLayerRenderer for customization.
+     */
+    @Override
+    public ExtrusionLayerRenderer getRenderer() {
+        return mRenderer;
     }
 
     /**
