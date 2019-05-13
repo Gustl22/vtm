@@ -2,7 +2,6 @@
 precision highp float;
 #endif
 uniform mat4 u_mvp;
-uniform mat4 u_mv;
 uniform vec4 u_color;
 uniform float u_alpha;
 uniform vec3 u_light;
@@ -63,16 +62,21 @@ void main() {
     #endif
 
     // Fog
+    #ifdef FOG
     vec4 mtmp = gl_Position;
     float distance = clamp((mtmp.xyz / mtmp.w).z * 0.5 + 0.5 - u_fogShift, 0.0, 1.0);
     float visibility = clamp(exp(-pow((distance * u_fogDensitiy), u_fogGradient)), 0.0, 1.0);
+    #endif
 
     // extreme fake-ssao by height
     l += (clamp(a_pos.z / 2048.0, 0.0, 0.1) - 0.05);
     color = vec4(u_color.rgb * (clamp(l, 0.0, 1.0)), u_color.a) * u_alpha;
-    color = mix(u_fogColor, color, visibility);
 
-        #ifdef SHADOW
+    #ifdef FOG
+    color = mix(u_fogColor, color, visibility);
+    #endif
+
+    #ifdef SHADOW
     if (hasLight) {
         vec4 positionFromLight = u_light_mvp * a_pos;
         v_shadow_coords = (positionFromLight / positionFromLight.w);

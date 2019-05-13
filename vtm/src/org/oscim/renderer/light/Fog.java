@@ -4,7 +4,8 @@ import org.oscim.backend.canvas.Color;
 
 public class Fog {
 
-    public static final int FOG_COLOR = Color.get(0.95, 0.95, 1.0);
+    //    public static final int FOG_COLOR = Color.get(0.95, 0.95, 1.0);
+    public static final int FOG_COLOR = Color.get(200, 77, 125, 193);
     public static final float FOG_DENSITY = 3.5f;
     public static final float FOG_GRADIENT = 4.0f;
     public static final float FOG_SHIFT = 0.6f;
