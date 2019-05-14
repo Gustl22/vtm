@@ -244,9 +244,11 @@ public final class LineTexBucket extends LineBucket {
         int aPos0, aPos1, aLen0, aLen1, aFlip;
 
         Shader(String shaderFile) {
-            if (!create(shaderFile))
-                return;
+            create(shaderFile);
+        }
 
+        @Override
+        public void init() {
             uMVP = getUniform("u_mvp");
 
             uColor = getUniform("u_color");

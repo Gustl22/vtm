@@ -135,18 +135,31 @@ public final class PolygonBucket extends RenderBucket {
         }
     }
 
-    static class Shader extends GLShader {
-        int uMVP, uColor, uScale, aPos;
+    static class Shader extends BasicShader {
+        int uColor;
 
         Shader(String shaderFile) {
-            if (!create(shaderFile))
-                return;
+            create(shaderFile);
+        }
 
-            uMVP = getUniform("u_mvp");
-            aPos = getAttrib("a_pos");
+        @Override
+        public void init() {
+            super.init();
             uColor = getUniform("u_color");
-            if ("polygon_layer_tex".equals(shaderFile))
-                uScale = getUniform("u_scale");
+        }
+    }
+
+    static class TexShader extends Shader {
+        int uScale;
+
+        TexShader(String shaderFile) {
+            super(shaderFile);
+        }
+
+        @Override
+        public void init() {
+            super.init();
+            uScale = getUniform("u_scale");
         }
     }
 
@@ -158,11 +171,11 @@ public final class PolygonBucket extends RenderBucket {
         private static PolygonBucket[] mAreaLayer;
 
         private static Shader polyShader;
-        private static Shader texShader;
+        private static TexShader texShader;
 
         static boolean init() {
             polyShader = new Shader("base_shader");
-            texShader = new Shader("polygon_layer_tex");
+            texShader = new TexShader("polygon_layer_tex");
 
             mAreaLayer = new PolygonBucket[STENCIL_BITS];
 
@@ -187,14 +200,15 @@ public final class PolygonBucket extends RenderBucket {
                 AreaStyle a = l.area.current();
 
                 if (enableTexture && (a.texture != null)) {
-                    s = setShader(texShader, v.mvp, false);
+                    TexShader sTex = setShader(texShader, v.mvp, false);
+                    s = sTex;
                     float num = clamp((Tile.SIZE / a.texture.width) >> 1, 1, Tile.SIZE);
 
                     float scale = (float) pos.getZoomScale();
                     float transition = clamp(scale - 1, 0, 1);
                     transition = Interpolation.exp5.apply(transition);
 
-                    gl.uniform2f(s.uScale, transition, div / num);
+                    gl.uniform2f(sTex.uScale, transition, div / num);
                     a.texture.bind();
 
                 } else {
@@ -270,7 +284,7 @@ public final class PolygonBucket extends RenderBucket {
          */
         private static boolean mClear;
 
-        private static Shader setShader(Shader shader, GLMatrix mvp, boolean first) {
+        private static <T extends Shader> T setShader(T shader, GLMatrix mvp, boolean first) {
             if (shader.useProgram() || first) {
                 GLState.enableVertexArrays(shader.aPos, GLState.DISABLED);
 

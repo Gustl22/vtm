@@ -19,7 +19,7 @@ package org.oscim.renderer.bucket;
 
 import org.oscim.backend.GL;
 import org.oscim.core.GeometryBuffer;
-import org.oscim.renderer.GLShader;
+import org.oscim.renderer.BasicShader;
 import org.oscim.renderer.GLState;
 import org.oscim.renderer.GLUtils;
 import org.oscim.renderer.GLViewport;
@@ -102,18 +102,19 @@ public class HairLineBucket extends RenderBucket {
             return true;
         }
 
-        public static class Shader extends GLShader {
-            int uMVP, uColor, uWidth, uScreen, aPos;
+        public static class Shader extends BasicShader {
+            int uColor, uWidth, uScreen;
 
             Shader(String shaderFile) {
-                if (!create(shaderFile))
-                    return;
+                create(shaderFile);
+            }
 
-                uMVP = getUniform("u_mvp");
+            @Override
+            public void init() {
+                super.init();
                 uColor = getUniform("u_color");
                 uWidth = getUniform("u_width");
                 uScreen = getUniform("u_screen");
-                aPos = getAttrib("a_pos");
             }
 
             public void set(GLViewport v) {

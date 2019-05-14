@@ -60,12 +60,7 @@ public abstract class ExtrusionRenderer extends ExtrusionLayerRenderer {
         mSun = new Sun();
     }
 
-    public static class Shader extends GLShader {
-        /**
-         * The vertex position as attribute.
-         */
-        int aPos;
-
+    public static class Shader extends BasicShader {
         /**
          * The normal of vertex's face as attribute.
          */
@@ -99,11 +94,6 @@ public abstract class ExtrusionRenderer extends ExtrusionLayerRenderer {
         int uMode;
 
         /**
-         * The model-view-projection matrix as uniform.
-         */
-        int uMVP;
-
-        /**
          * The height limit of extrusions as uniform.
          */
         int uZLimit;
@@ -113,15 +103,16 @@ public abstract class ExtrusionRenderer extends ExtrusionLayerRenderer {
         }
 
         public Shader(String shader, String directives) {
-            if (!createDirective(shader, directives))
-                return;
+            createDirective(shader, directives);
+        }
 
-            uMVP = getUniform("u_mvp");
+        @Override
+        public void init() {
+            super.init();
             uColor = getUniform("u_color");
             uAlpha = getUniform("u_alpha");
             uMode = getUniform("u_mode");
             uZLimit = getUniform("u_zlimit");
-            aPos = getAttrib("a_pos");
             aNormal = getAttrib("a_normal");
             uLight = getUniform("u_light");
         }

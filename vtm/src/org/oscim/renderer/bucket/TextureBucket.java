@@ -87,16 +87,18 @@ public class TextureBucket extends RenderBucket {
         int uMV, uProj, uScale, uCoordScale, uTexSize, aPos, aTexCoord;
 
         Shader() {
-            if (!create("texture_layer"))
-                return;
+            create("texture_layer");
+        }
 
+        @Override
+        public void init() {
             uMV = getUniform("u_mv");
             uProj = getUniform("u_proj");
             uScale = getUniform("u_scale");
             uCoordScale = getUniform("u_coord_scale");
             uTexSize = getUniform("u_div");
-            aPos = getAttrib("vertex");
-            aTexCoord = getAttrib("tex_coord");
+            aPos = getAttrib("a_pos");
+            aTexCoord = getAttrib("a_tex_coord");
         }
 
         @Override

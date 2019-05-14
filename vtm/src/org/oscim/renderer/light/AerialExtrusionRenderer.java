@@ -38,14 +38,16 @@ public class AerialExtrusionRenderer extends ExtrusionLayerRenderer {
     private Fog mFog;
 
     public static class Shader extends ExtrusionRenderer.Shader {
-        Fog.Shader fog = new Fog.Shader();
+        Fog.ShaderLocations fogLocations = new Fog.ShaderLocations();
 
         public Shader(String shader) {
             super(shader, "#define FOG 1\n");
-            fog.uColor = getUniform("u_fogColor");
-            fog.uDensity = getUniform("u_fogDensitiy");
-            fog.uGradient = getUniform("u_fogGradient");
-            fog.uShift = getUniform("u_fogShift");
+        }
+
+        @Override
+        public void init() {
+            super.init();
+            fogLocations.initLocations(this);
         }
     }
 
@@ -84,10 +86,10 @@ public class AerialExtrusionRenderer extends ExtrusionLayerRenderer {
         {
             mExtrusionShader.useProgram();
 
-            GLUtils.setColor(mExtrusionShader.fog.uColor, mFog.getColor());
-            gl.uniform1f(mExtrusionShader.fog.uDensity, mFog.getDensity());
-            gl.uniform1f(mExtrusionShader.fog.uGradient, mFog.getGradient());
-            gl.uniform1f(mExtrusionShader.fog.uShift, mFog.getShift());
+            GLUtils.setColor(mExtrusionShader.fogLocations.uColor, mFog.getColor());
+            gl.uniform1f(mExtrusionShader.fogLocations.uDensity, mFog.getDensity());
+            gl.uniform1f(mExtrusionShader.fogLocations.uGradient, mFog.getGradient());
+            gl.uniform1f(mExtrusionShader.fogLocations.uShift, mFog.getShift());
 
             mRenderer.setShader(mExtrusionShader);
             mRenderer.useLight(true);

@@ -50,8 +50,11 @@ public class OffscreenRenderer extends ExtrusionLayerRenderer {
         int aPos, uTexDepth, uTexColor, uPixel;
 
         Shader(String shaderFile) {
-            if (!create(shaderFile))
-                return;
+            create(shaderFile);
+        }
+
+        @Override
+        public void init() {
             aPos = getAttrib("a_pos");
             uTexColor = getUniform("u_texColor");
             uTexDepth = getUniform("u_tex");

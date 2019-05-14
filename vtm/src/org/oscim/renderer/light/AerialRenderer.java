@@ -15,7 +15,7 @@
 package org.oscim.renderer.light;
 
 import org.oscim.backend.GL;
-import org.oscim.renderer.GLShader;
+import org.oscim.renderer.BasicShader;
 import org.oscim.renderer.GLState;
 import org.oscim.renderer.GLUtils;
 import org.oscim.renderer.GLViewport;
@@ -41,19 +41,17 @@ public class AerialRenderer extends LayerRenderer {
      */
     private GroundShader mGroundShader;
 
-    public static class GroundShader extends GLShader {
-        int aPos, uMVP;
-        Fog.Shader sFog = new Fog.Shader();
+    public static class GroundShader extends BasicShader {
+        Fog.ShaderLocations sFog = new Fog.ShaderLocations();
 
         public GroundShader(String shader) {
-            if (!createDirective(shader, "#define FOG 1\n"))
-                return;
-            aPos = getAttrib("a_pos");
-            uMVP = getUniform("u_mvp");
-            sFog.uColor = getUniform("u_fogColor");
-            sFog.uDensity = getUniform("u_fogDensitiy");
-            sFog.uGradient = getUniform("u_fogGradient");
-            sFog.uShift = getUniform("u_fogShift");
+            createDirective(shader, "#define FOG 1\n");
+        }
+
+        @Override
+        public void init() {
+            super.init();
+            sFog.initLocations(this);
         }
     }
 

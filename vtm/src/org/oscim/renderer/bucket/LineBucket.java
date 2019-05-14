@@ -22,7 +22,7 @@ import org.oscim.backend.GLAdapter;
 import org.oscim.backend.canvas.Paint.Cap;
 import org.oscim.core.GeometryBuffer;
 import org.oscim.core.MercatorProjection;
-import org.oscim.renderer.GLShader;
+import org.oscim.renderer.BasicShader;
 import org.oscim.renderer.GLState;
 import org.oscim.renderer.GLUtils;
 import org.oscim.renderer.GLViewport;
@@ -505,19 +505,21 @@ public class LineBucket extends RenderBucket {
         vertices.add(ox, oy, (short) dx, (short) dy);
     }
 
-    static class Shader extends GLShader {
-        int uMVP, uFade, uWidth, uColor, uMode, uHeight, aPos;
+    static class Shader extends BasicShader {
+        int uFade, uWidth, uColor, uMode, uHeight;
 
         Shader(String shaderFile) {
-            if (!create(shaderFile))
-                return;
-            uMVP = getUniform("u_mvp");
+            create(shaderFile);
+        }
+
+        @Override
+        public void init() {
+            super.init();
             uFade = getUniform("u_fade");
             uWidth = getUniform("u_width");
             uColor = getUniform("u_color");
             uMode = getUniform("u_mode");
             uHeight = getUniform("u_height");
-            aPos = getAttrib("a_pos");
         }
 
         @Override

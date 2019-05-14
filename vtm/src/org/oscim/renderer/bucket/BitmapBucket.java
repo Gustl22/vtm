@@ -18,7 +18,7 @@ package org.oscim.renderer.bucket;
 
 import org.oscim.backend.GL;
 import org.oscim.backend.canvas.Bitmap;
-import org.oscim.renderer.GLShader;
+import org.oscim.renderer.BasicShader;
 import org.oscim.renderer.GLState;
 import org.oscim.renderer.GLViewport;
 import org.oscim.renderer.bucket.TextureItem.TexturePool;
@@ -163,16 +163,18 @@ public class BitmapBucket extends TextureBucket {
         //textures = null;
     }
 
-    static class Shader extends GLShader {
-        int uMVP, uAlpha, aPos, aTexCoord;
+    static class Shader extends BasicShader {
+        int uAlpha, aTexCoord;
 
         Shader(String shaderFile) {
-            if (!create(shaderFile))
-                return;
-            uMVP = getUniform("u_mvp");
+            create(shaderFile);
+        }
+
+        @Override
+        public void init() {
+            super.init();
             uAlpha = getUniform("u_alpha");
-            aPos = getAttrib("vertex");
-            aTexCoord = getAttrib("tex_coord");
+            aTexCoord = getAttrib("a_tex_coord");
         }
 
         @Override

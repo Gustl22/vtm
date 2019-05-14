@@ -1,6 +1,7 @@
 package org.oscim.renderer.light;
 
 import org.oscim.backend.canvas.Color;
+import org.oscim.renderer.GLShader;
 
 public class Fog {
 
@@ -45,7 +46,7 @@ public class Fog {
         return mShift;
     }
 
-    static class Shader {
+    static class ShaderLocations {
         /**
          * The sFog color as uniform.
          */
@@ -65,5 +66,12 @@ public class Fog {
          * The sFog shift as uniform.
          */
         int uShift;
+
+        public void initLocations(GLShader shader) {
+            uColor = shader.getUniform("u_fogColor");
+            uDensity = shader.getUniform("u_fogDensitiy");
+            uGradient = shader.getUniform("u_fogGradient");
+            uShift = shader.getUniform("u_fogShift");
+        }
     }
 }

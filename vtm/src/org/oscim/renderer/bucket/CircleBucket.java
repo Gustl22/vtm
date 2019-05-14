@@ -20,7 +20,7 @@ package org.oscim.renderer.bucket;
 import org.oscim.backend.GL;
 import org.oscim.backend.GLAdapter;
 import org.oscim.core.GeometryBuffer;
-import org.oscim.renderer.GLShader;
+import org.oscim.renderer.BasicShader;
 import org.oscim.renderer.GLState;
 import org.oscim.renderer.GLUtils;
 import org.oscim.renderer.GLViewport;
@@ -91,8 +91,8 @@ public class CircleBucket extends RenderBucket {
             return true;
         }
 
-        public static class Shader extends GLShader {
-            int uMVP, uFill, uRadius, uStroke, uWidth, aPos;
+        public static class Shader extends BasicShader {
+            int uFill, uRadius, uStroke, uWidth;
 
             Shader(String shaderFile) {
                 if (!GLAdapter.CIRCLE_QUADS && !GLAdapter.ANDROID_QUIRKS && !GLAdapter.GDX_WEBGL_QUIRKS)
@@ -107,15 +107,16 @@ public class CircleBucket extends RenderBucket {
                     version = "120";
                 }
 
-                if (!createVersioned(shaderFile, version))
-                    return;
+                createVersioned(shaderFile, version);
+            }
 
-                uMVP = getUniform("u_mvp");
+            @Override
+            public void init() {
+                super.init();
                 uFill = getUniform("u_fill");
                 uRadius = getUniform("u_radius");
                 uStroke = getUniform("u_stroke");
                 uWidth = getUniform("u_width");
-                aPos = getAttrib("a_pos");
             }
 
             public void set(GLViewport v) {

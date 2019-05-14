@@ -22,7 +22,7 @@ import org.oscim.backend.canvas.Color;
 import org.oscim.core.GeometryBuffer;
 import org.oscim.core.MapPosition;
 import org.oscim.core.MercatorProjection;
-import org.oscim.renderer.GLShader;
+import org.oscim.renderer.BasicShader;
 import org.oscim.renderer.GLState;
 import org.oscim.renderer.GLUtils;
 import org.oscim.renderer.GLViewport;
@@ -155,17 +155,18 @@ public class MeshBucket extends RenderBucket {
             return true;
         }
 
-        static class Shader extends GLShader {
-            int uMVP, uColor, uHeight, aPos;
+        static class Shader extends BasicShader {
+            int uColor, uHeight;
 
             Shader(String shaderFile) {
-                if (!create(shaderFile))
-                    return;
+                create(shaderFile);
+            }
 
-                uMVP = getUniform("u_mvp");
+            @Override
+            public void init() {
+                super.init();
                 uColor = getUniform("u_color");
                 uHeight = getUniform("u_height");
-                aPos = getAttrib("a_pos");
             }
         }
 

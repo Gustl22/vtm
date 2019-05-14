@@ -39,12 +39,12 @@ public abstract class GLShader {
 
     protected boolean createDirective(String vertexSource, String fragmentSource, String directives) {
         program = createProgramDirective(vertexSource, fragmentSource, directives);
-        return program != 0;
+        return initInternal();
     }
 
     protected boolean createVersioned(String vertexSource, String fragmentSource, String version) {
         program = createProgramDirective(vertexSource, fragmentSource, version == null ? null : ("#version " + version + "\n"));
-        return program != 0;
+        return initInternal();
     }
 
     protected boolean create(String fileName) {
@@ -53,12 +53,12 @@ public abstract class GLShader {
 
     protected boolean createDirective(String fileName, String directives) {
         program = loadShaderDirective(fileName, directives);
-        return program != 0;
+        return initInternal();
     }
 
     protected boolean createVersioned(String fileName, String version) {
         program = loadShaderDirective(fileName, version == null ? null : ("#version " + version + "\n"));
-        return program != 0;
+        return initInternal();
     }
 
     protected int getAttrib(String name) {
@@ -68,7 +68,7 @@ public abstract class GLShader {
         return loc;
     }
 
-    protected int getUniform(String name) {
+    public int getUniform(String name) {
         int loc = gl.getUniformLocation(program, name);
         if (loc < 0)
             log.debug("missing uniform: {}", name);
@@ -170,4 +170,14 @@ public abstract class GLShader {
         }
         return program;
     }
+
+    private boolean initInternal() {
+        if (program != 0) {
+            init();
+            return true;
+        }
+        return false;
+    }
+
+    public abstract void init();
 }

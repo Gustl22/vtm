@@ -16,10 +16,10 @@
 package org.oscim.renderer.light;
 
 import org.oscim.backend.GL;
+import org.oscim.renderer.BasicShader;
 import org.oscim.renderer.ExtrusionLayerRenderer;
 import org.oscim.renderer.ExtrusionRenderer;
 import org.oscim.renderer.GLMatrix;
-import org.oscim.renderer.GLShader;
 import org.oscim.renderer.GLState;
 import org.oscim.renderer.GLUtils;
 import org.oscim.renderer.GLViewport;
@@ -73,17 +73,18 @@ public class ShadowRenderer extends ExtrusionLayerRenderer {
      */
     private ExtrusionRenderer.Shader mLightShader;
 
-    public static class GroundShader extends GLShader {
-        int aPos, uLightColor, uLightMvp, uMVP, uShadowMap, uShadowRes;
+    public static class GroundShader extends BasicShader {
+        int uLightColor, uLightMvp, uShadowMap, uShadowRes;
 
         public GroundShader(String shader) {
-            if (!createDirective(shader, "#define SHADOW 1\n"))
-                return;
+            createDirective(shader, "#define SHADOW 1\n");
+        }
 
-            aPos = getAttrib("a_pos");
+        @Override
+        public void init() {
+            super.init();
             uLightColor = getUniform("u_lightColor");
             uLightMvp = getUniform("u_light_mvp");
-            uMVP = getUniform("u_mvp");
             uShadowMap = getUniform("u_shadowMap");
             uShadowRes = getUniform("u_shadowRes");
         }
@@ -122,6 +123,11 @@ public class ShadowRenderer extends ExtrusionLayerRenderer {
 
         public Shader(String shader) {
             super(shader, "#define SHADOW 1\n");
+        }
+
+        @Override
+        public void init() {
+            super.init();
             uLightColor = getUniform("u_lightColor");
             uLightMvp = getUniform("u_light_mvp");
             uShadowMap = getUniform("u_shadowMap");
