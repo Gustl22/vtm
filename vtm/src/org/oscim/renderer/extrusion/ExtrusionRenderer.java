@@ -17,14 +17,17 @@
  * You should have received a copy of the GNU Lesser General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.oscim.renderer;
+package org.oscim.renderer.extrusion;
 
 import org.oscim.backend.GL;
 import org.oscim.core.Tile;
+import org.oscim.renderer.GLState;
+import org.oscim.renderer.GLUtils;
+import org.oscim.renderer.GLViewport;
+import org.oscim.renderer.MapRenderer;
 import org.oscim.renderer.bucket.ExtrusionBucket;
 import org.oscim.renderer.bucket.ExtrusionBuckets;
 import org.oscim.renderer.bucket.RenderBuckets;
-import org.oscim.renderer.light.ShadowRenderer;
 import org.oscim.renderer.light.Sun;
 import org.oscim.utils.FastMath;
 import org.slf4j.Logger;
@@ -33,14 +36,15 @@ import org.slf4j.LoggerFactory;
 import static org.oscim.backend.GLAdapter.gl;
 import static org.oscim.renderer.MapRenderer.COORD_SCALE;
 
-public abstract class ExtrusionRenderer extends ExtrusionLayerRenderer {
+public abstract class ExtrusionRenderer extends ExtrusionLayerRenderer<ExtrusionShaderLocations> {
     static final Logger log = LoggerFactory.getLogger(ExtrusionRenderer.class);
 
     // Don't draw extrusions which are covered by others
     private final boolean mTranslucent;
 
     private final boolean mMesh;
-    private Shader mShader;
+    private ExtrusionShader mShader;
+    private ExtrusionShader mMainShader;
 
     protected ExtrusionBuckets[] mExtrusionBucketSet = {};
     protected int mBucketsCnt;
@@ -58,77 +62,43 @@ public abstract class ExtrusionRenderer extends ExtrusionLayerRenderer {
         mTranslucent = translucent;
 
         mSun = new Sun();
-    }
 
-    public static class Shader extends BasicShader {
-        /**
-         * The normal of vertex's face as attribute.
-         */
-        int aNormal;
-
-        /**
-         * The alpha value (e.g. for fading animation) as uniform.
-         */
-        int uAlpha;
-
-        /**
-         * The extrusion color(s) as uniform.
-         */
-        int uColor;
-
-        /**
-         * The lights position vector as uniform.
-         */
-        int uLight;
-
-        /**
-         * The shader render mode as uniform.
-         * <p>
-         * Extrusion shader:
-         * -1: translucent (depth buffer only)
-         * 0: draw roof
-         * 1: draw side one
-         * 2: draw side two
-         * 3: draw outline
-         */
-        int uMode;
-
-        /**
-         * The height limit of extrusions as uniform.
-         */
-        int uZLimit;
-
-        public Shader(String shader) {
-            this(shader, null);
-        }
-
-        public Shader(String shader, String directives) {
-            createDirective(shader, directives);
-        }
-
-        @Override
-        public void init() {
-            super.init();
-            uColor = getUniform("u_color");
-            uAlpha = getUniform("u_alpha");
-            uMode = getUniform("u_mode");
-            uZLimit = getUniform("u_zlimit");
-            aNormal = getAttrib("a_normal");
-            uLight = getUniform("u_light");
-        }
+        if (mMesh)
+            mShader = mMainShader = new ExtrusionShader("extrusion_layer_mesh");
+        else
+            mShader = mMainShader = new ExtrusionShader("extrusion_layer_ext");
+        setShaderLocations(mShader.getExtrusionShaderLocations());
     }
 
     public void enableCurrentSunPos(boolean enableSunPos) {
         mEnableCurrentSunPos = enableSunPos;
     }
 
-    public Shader getShader() {
-        return mShader;
+    @Override
+    public ExtrusionShader useMainShader() {
+        mShader = mMainShader;
+        mShader.useProgram();
+        return mMainShader;
+    }
+
+    @Override
+    public ExtrusionShader getMainShader() {
+        return mMainShader;
+    }
+
+    @Override
+    public void setShader(ExtrusionShader shader) {
+        mShader = shader;
     }
 
     @Override
     public Sun getSun() {
         return mSun;
+    }
+
+    @Override
+    public boolean isLight() {
+        return mUseLight;
     }
 
     @Override
@@ -143,11 +113,8 @@ public abstract class ExtrusionRenderer extends ExtrusionLayerRenderer {
 
     @Override
     public boolean setup() {
-        if (!mMesh)
-            mShader = new Shader("extrusion_layer_ext");
-        else
-            mShader = new Shader("extrusion_layer_mesh");
-
+        mShader.build();
+        useMainShader();
         return true;
     }
 
@@ -199,7 +166,8 @@ public abstract class ExtrusionRenderer extends ExtrusionLayerRenderer {
 
         GLState.test(true, false);
 
-        Shader s = mShader;
+        ExtrusionShaderLocations sl = mShader.getExtrusionShaderLocations();
+        ExtrusionShader s = mShader;
         s.useProgram();
         GLState.enableVertexArrays(s.aPos, GLState.DISABLED);
 
@@ -209,9 +177,9 @@ public abstract class ExtrusionRenderer extends ExtrusionLayerRenderer {
             gl.enable(GL.CULL_FACE);
 
         gl.depthFunc(GL.LESS);
-        gl.uniform1f(s.uAlpha, mAlpha);
-        gl.uniform1f(s.uZLimit, mZLimit);
-        GLUtils.glUniform3fv(s.uLight, 1, mSun.getPosition());
+        gl.uniform1f(sl.uAlpha, mAlpha);
+        gl.uniform1f(sl.uZLimit, mZLimit);
+        GLUtils.glUniform3fv(sl.uLight, 1, mSun.getPosition());
 
         ExtrusionBuckets[] ebs = mExtrusionBucketSet;
 
@@ -219,7 +187,7 @@ public abstract class ExtrusionRenderer extends ExtrusionLayerRenderer {
             /* only draw to depth buffer */
             GLState.blend(false);
             gl.colorMask(false, false, false, false);
-            gl.uniform1i(s.uMode, -1);
+            gl.uniform1i(sl.uMode, -1);
 
             for (int i = 0; i < mBucketsCnt; i++) {
                 if (ebs[i] == null)
@@ -234,7 +202,7 @@ public abstract class ExtrusionRenderer extends ExtrusionLayerRenderer {
 
                 float alpha = mAlpha * getFade(ebs[i]);
                 if (alpha != currentAlpha) {
-                    gl.uniform1f(s.uAlpha, alpha);
+                    gl.uniform1f(sl.uAlpha, alpha);
                     currentAlpha = alpha;
                 }
 
@@ -250,7 +218,7 @@ public abstract class ExtrusionRenderer extends ExtrusionLayerRenderer {
         // Depth cannot be transparent (in GL20)
         GLState.blend(mUseLight);
 
-        GLState.enableVertexArrays(s.aPos, s.aNormal);
+        GLState.enableVertexArrays(s.aPos, sl.aNormal);
 
         for (int i = 0; i < mBucketsCnt; i++) {
             if (ebs[i].ibo == null)
@@ -264,7 +232,7 @@ public abstract class ExtrusionRenderer extends ExtrusionLayerRenderer {
 
             float alpha = mAlpha * getFade(ebs[i]);
             if (alpha != currentAlpha) {
-                gl.uniform1f(s.uAlpha, alpha);
+                gl.uniform1f(sl.uAlpha, alpha);
                 currentAlpha = alpha;
             }
 
@@ -274,7 +242,7 @@ public abstract class ExtrusionRenderer extends ExtrusionLayerRenderer {
 
                 if (eb.getColors() != currentColors) {
                     currentColors = eb.getColors();
-                    GLUtils.glUniform4fv(s.uColor,
+                    GLUtils.glUniform4fv(sl.uColor,
                             mMesh ? 1 : 4,
                             currentColors);
                 }
@@ -283,7 +251,7 @@ public abstract class ExtrusionRenderer extends ExtrusionLayerRenderer {
                         false, RenderBuckets.SHORT_BYTES * 4, eb.getVertexOffset());
 
                 if (mUseLight)
-                    gl.vertexAttribPointer(s.aNormal, 2, GL.UNSIGNED_BYTE,
+                    gl.vertexAttribPointer(sl.aNormal, 2, GL.UNSIGNED_BYTE,
                             false, RenderBuckets.SHORT_BYTES * 4, eb.getVertexOffset() + RenderBuckets.SHORT_BYTES * 3);
 
                 /* draw extruded outlines (mMesh == false) */
@@ -294,17 +262,17 @@ public abstract class ExtrusionRenderer extends ExtrusionLayerRenderer {
                     }
 
                     /* draw roof */
-                    gl.uniform1i(s.uMode, 0);
+                    gl.uniform1i(sl.uMode, 0);
                     gl.drawElements(GL.TRIANGLES, eb.idx[2],
                             GL.UNSIGNED_SHORT, eb.off[2]);
 
                     /* draw sides 1 */
-                    gl.uniform1i(s.uMode, 1);
+                    gl.uniform1i(sl.uMode, 1);
                     gl.drawElements(GL.TRIANGLES, eb.idx[0],
                             GL.UNSIGNED_SHORT, eb.off[0]);
 
                     /* draw sides 2 */
-                    gl.uniform1i(s.uMode, 2);
+                    gl.uniform1i(sl.uMode, 2);
                     gl.drawElements(GL.TRIANGLES, eb.idx[1],
                             GL.UNSIGNED_SHORT, eb.off[1]);
 
@@ -317,7 +285,7 @@ public abstract class ExtrusionRenderer extends ExtrusionLayerRenderer {
                         v.mvp.setAsUniform(s.uMVP);
                     }
 
-                    gl.uniform1i(s.uMode, 3);
+                    gl.uniform1i(sl.uMode, 3);
 
                     gl.drawElements(GL.LINES, eb.idx[3],
                             GL.UNSIGNED_SHORT, eb.off[3]);
@@ -354,7 +322,7 @@ public abstract class ExtrusionRenderer extends ExtrusionLayerRenderer {
         return FastMath.clamp((float) (MapRenderer.frametime - ebs.animTime) / 300f, 0f, 1f);
     }
 
-    private void setMatrix(Shader s, GLViewport v, ExtrusionBuckets l) {
+    private void setMatrix(ExtrusionShader s, GLViewport v, ExtrusionBuckets l) {
 
         int z = l.zoomLevel;
         double curScale = Tile.SIZE * v.pos.scale;
@@ -369,8 +337,8 @@ public abstract class ExtrusionRenderer extends ExtrusionLayerRenderer {
 
         // Create shadow map converter
         // TODO may code it cleaner
-        if (s instanceof ShadowRenderer.Shader)
-            ((ShadowRenderer.Shader) s).setLightMVP(v.mvp);
+        if (s.isShadow())
+            s.getShadowShaderLocations().setLightMVP(v.mvp);
 
         // Apply model matrix to VP-Matrix
         v.mvp.multiplyLhs(v.viewproj);
@@ -385,17 +353,12 @@ public abstract class ExtrusionRenderer extends ExtrusionLayerRenderer {
         v.mvp.setAsUniform(s.uMVP);
     }
 
-    @Override
-    public void setShader(Shader shader) {
-        mShader = shader;
-    }
-
     public void setZLimit(float zLimit) {
         mZLimit = zLimit;
     }
 
     @Override
-    public void useLight(boolean useLight) {
+    public void setLight(boolean useLight) {
         mUseLight = useLight;
     }
 }

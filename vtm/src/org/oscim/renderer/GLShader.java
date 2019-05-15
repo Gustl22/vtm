@@ -31,7 +31,7 @@ import static org.oscim.backend.GLAdapter.gl;
 public abstract class GLShader {
     static final Logger log = LoggerFactory.getLogger(GLShader.class);
 
-    public int program;
+    public int program = GLState.DISABLED;
 
     protected boolean create(String vertexSource, String fragmentSource) {
         return createVersioned(vertexSource, fragmentSource, null);
@@ -61,7 +61,7 @@ public abstract class GLShader {
         return initInternal();
     }
 
-    protected int getAttrib(String name) {
+    public int getAttrib(String name) {
         int loc = gl.getAttribLocation(program, name);
         if (loc < 0)
             log.debug("missing attribute: {}", name);

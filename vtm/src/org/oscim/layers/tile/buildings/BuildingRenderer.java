@@ -23,7 +23,7 @@ import org.oscim.layers.tile.TileDistanceSort;
 import org.oscim.layers.tile.TileRenderer;
 import org.oscim.layers.tile.TileSet;
 import org.oscim.layers.tile.ZoomLimiter;
-import org.oscim.renderer.ExtrusionRenderer;
+import org.oscim.renderer.extrusion.ExtrusionRenderer;
 import org.oscim.renderer.GLViewport;
 import org.oscim.renderer.MapRenderer;
 import org.oscim.renderer.bucket.ExtrusionBuckets;

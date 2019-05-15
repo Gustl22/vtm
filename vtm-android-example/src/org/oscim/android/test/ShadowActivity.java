@@ -20,7 +20,7 @@ import android.view.View;
 import android.widget.SeekBar;
 import android.widget.ToggleButton;
 
-import org.oscim.renderer.ExtrusionRenderer;
+import org.oscim.renderer.extrusion.ExtrusionRenderer;
 import org.oscim.renderer.light.Sun;
 
 public class ShadowActivity extends SimpleMapActivity implements SeekBar.OnSeekBarChangeListener {

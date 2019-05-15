@@ -18,6 +18,7 @@
 package org.oscim.renderer;
 
 import org.oscim.backend.GL;
+import org.oscim.renderer.extrusion.ExtrusionLayerRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

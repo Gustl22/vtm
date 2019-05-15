@@ -21,7 +21,7 @@ import org.oscim.layers.tile.TileManager;
 import org.oscim.layers.tile.TileRenderer;
 import org.oscim.layers.tile.ZoomLimiter;
 import org.oscim.map.Map;
-import org.oscim.renderer.ExtrusionLayerRenderer;
+import org.oscim.renderer.extrusion.ExtrusionLayerRenderer;
 import org.oscim.renderer.GLViewport;
 import org.oscim.renderer.OffscreenRenderer;
 import org.oscim.renderer.OffscreenRenderer.Mode;

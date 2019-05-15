@@ -17,13 +17,13 @@ package org.oscim.renderer.light;
 
 import org.oscim.backend.GL;
 import org.oscim.renderer.BasicShader;
-import org.oscim.renderer.ExtrusionLayerRenderer;
-import org.oscim.renderer.ExtrusionRenderer;
 import org.oscim.renderer.GLMatrix;
 import org.oscim.renderer.GLState;
 import org.oscim.renderer.GLUtils;
 import org.oscim.renderer.GLViewport;
 import org.oscim.renderer.MapRenderer;
+import org.oscim.renderer.extrusion.ExtrusionLayerRenderer;
+import org.oscim.renderer.extrusion.ExtrusionShader;
 import org.oscim.utils.math.MathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +32,7 @@ import java.nio.FloatBuffer;
 
 import static org.oscim.backend.GLAdapter.gl;
 
-public class ShadowRenderer extends ExtrusionLayerRenderer {
+public class ShadowRenderer extends ExtrusionLayerRenderer<ShadowRenderer.ExtrusionShadowShaderLocations> {
     private static final Logger log = LoggerFactory.getLogger(ShadowRenderer.class);
 
     public static boolean DEBUG = false;
@@ -58,10 +58,10 @@ public class ShadowRenderer extends ExtrusionLayerRenderer {
         texUnitConverter.set(texUnitConverterF);
     }
 
-    /**
-     * Shader to draw the extrusions.
-     */
-    private Shader mExtrusionShader;
+//    /**
+//     * Shader to draw the extrusions.
+//     */
+//    private Shader mExtrusionShader;
 
     /**
      * Shader to draw the ground.
@@ -71,26 +71,24 @@ public class ShadowRenderer extends ExtrusionLayerRenderer {
     /**
      * Shader to create shadow map (of ground and extrusions) from lights view.
      */
-    private ExtrusionRenderer.Shader mLightShader;
+    private ExtrusionShader mLightShader;
 
     public static class GroundShader extends BasicShader {
-        int uLightColor, uLightMvp, uShadowMap, uShadowRes;
+        ShadowShaderLocations shadowShaderLocations;
 
         public GroundShader(String shader) {
-            createDirective(shader, "#define SHADOW 1\n");
+            shadowShaderLocations = new ShadowShaderLocations();
+            createDirective(shader, shadowShaderLocations.getDirective());
         }
 
         @Override
         public void init() {
             super.init();
-            uLightColor = getUniform("u_lightColor");
-            uLightMvp = getUniform("u_light_mvp");
-            uShadowMap = getUniform("u_shadowMap");
-            uShadowRes = getUniform("u_shadowRes");
+            shadowShaderLocations.init(this);
         }
     }
 
-    public static class Shader extends ExtrusionRenderer.Shader {
+    public static class ExtrusionShadowShaderLocations extends ShadowShaderLocations {
         /**
          * For temporary use.
          */
@@ -100,39 +98,6 @@ public class ShadowRenderer extends ExtrusionLayerRenderer {
          * The light view projection matrix.
          */
         GLMatrix lightMat = null;
-
-        /**
-         * The light color and shadow transparency as uniform.
-         */
-        int uLightColor;
-
-        /**
-         * The light mvp for shadow as uniform.
-         */
-        int uLightMvp;
-
-        /**
-         * The shadow map texture as uniform.
-         */
-        int uShadowMap;
-
-        /**
-         * The shadow map resolution as uniform.
-         */
-        int uShadowRes;
-
-        public Shader(String shader) {
-            super(shader, "#define SHADOW 1\n");
-        }
-
-        @Override
-        public void init() {
-            super.init();
-            uLightColor = getUniform("u_lightColor");
-            uLightMvp = getUniform("u_light_mvp");
-            uShadowMap = getUniform("u_shadowMap");
-            uShadowRes = getUniform("u_shadowRes");
-        }
 
         public void setLightMVP(GLMatrix model) {
             if (lightMat == null) return;
@@ -147,6 +112,9 @@ public class ShadowRenderer extends ExtrusionLayerRenderer {
 
     public ShadowRenderer(ExtrusionLayerRenderer renderer) {
         super(renderer);
+
+        ExtrusionShader extrusionShader = getMainShader().setShadow(true);
+        setShaderLocations(extrusionShader.getShadowShaderLocations());
     }
 
     /**
@@ -185,19 +153,13 @@ public class ShadowRenderer extends ExtrusionLayerRenderer {
             mGroundQuad = bindPlane(SHADOWMAP_RESOLUTION * 1.1f, SHADOWMAP_RESOLUTION * 1.1f);
         }
 
-        // Shader
-        mGroundShader = new GroundShader("extrusion_shadow_ground");
-        mLightShader = new ExtrusionRenderer.Shader("extrusion_shadow_light");
-        if (isMesh())
-            mExtrusionShader = new Shader("extrusion_layer_mesh");
-        else
-            mExtrusionShader = new Shader("extrusion_layer_ext");
-
         mFrameBuffer = new ShadowFrameBuffer((int) SHADOWMAP_RESOLUTION, (int) SHADOWMAP_RESOLUTION);
 
-        //mRenderer.setup(); // No need to setup, as shaders are taken from here
+        // Shader
+        mGroundShader = new GroundShader("extrusion_shadow_ground");
+        mLightShader = new ExtrusionShader("extrusion_shadow_light").build();
 
-        return super.setup();
+        return mRenderer.setup() && super.setup();
     }
 
     @Override
@@ -259,9 +221,9 @@ public class ShadowRenderer extends ExtrusionLayerRenderer {
 
             // Draw EXTRUSION shadow map (in ExtrusionRenderer)
             {
-                //ExtrusionRenderer.Shader tmpShader = mRenderer.getShader();
+                //ExtrusionRenderer.Shader tmpShader = mRenderer.useMainShader();
                 mRenderer.setShader(mLightShader);
-                mRenderer.useLight(false);
+                mRenderer.setLight(false);
                 mRenderer.render(viewport);
                 //mRenderer.setShader(tmpShader);
             }
@@ -289,10 +251,10 @@ public class ShadowRenderer extends ExtrusionLayerRenderer {
                 mGroundShader.useProgram();
                 viewport.viewproj.setAsUniform(mGroundShader.uMVP);
 
-                gl.uniform1i(mGroundShader.uShadowMap, 2); // TEXTURE2 for shadows
-                GLUtils.setColor(mGroundShader.uLightColor, lightColor);
-                gl.uniform1f(mGroundShader.uShadowRes, SHADOWMAP_RESOLUTION);
-                mLightMat.setAsUniform(mGroundShader.uLightMvp);
+                gl.uniform1i(mGroundShader.shadowShaderLocations.uShadowMap, 2); // TEXTURE2 for shadows
+                GLUtils.setColor(mGroundShader.shadowShaderLocations.uLightColor, lightColor);
+                gl.uniform1f(mGroundShader.shadowShaderLocations.uShadowRes, SHADOWMAP_RESOLUTION);
+                mLightMat.setAsUniform(mGroundShader.shadowShaderLocations.uLightMvp);
 
                 // Bind VBO
                 GLState.bindVertexBuffer(mGroundQuad);
@@ -308,15 +270,14 @@ public class ShadowRenderer extends ExtrusionLayerRenderer {
 
             // Draw EXTRUSIONS (in ExtrusionRenderer)
             {
-                //ExtrusionRenderer.Shader tmpShader = mRenderer.getShader();
-                mExtrusionShader.useProgram();
-                gl.uniform1i(mExtrusionShader.uShadowMap, 2); // TEXTURE2 for shadows
-                GLUtils.setColor(mExtrusionShader.uLightColor, lightColor);
-                gl.uniform1f(mExtrusionShader.uShadowRes, SHADOWMAP_RESOLUTION);
+                //ExtrusionRenderer.Shader tmpShader = mRenderer.useMainShader();
+                useMainShader();
+                setLight(true);
+                gl.uniform1i(getShaderLocations().uShadowMap, 2); // TEXTURE2 for shadows
+                GLUtils.setColor(getShaderLocations().uLightColor, lightColor);
+                gl.uniform1f(getShaderLocations().uShadowRes, SHADOWMAP_RESOLUTION);
+                getShaderLocations().lightMat = mLightMat;
 
-                mExtrusionShader.lightMat = mLightMat;
-                mRenderer.setShader(mExtrusionShader);
-                mRenderer.useLight(true);
                 mRenderer.render(viewport);
                 //mRenderer.setShader(tmpShader);
             }

@@ -29,7 +29,7 @@ import org.oscim.layers.tile.vector.VectorTileLayer;
 import org.oscim.layers.tile.vector.labeling.LabelLayer;
 import org.oscim.map.Map;
 import org.oscim.renderer.BitmapRenderer;
-import org.oscim.renderer.ExtrusionRenderer;
+import org.oscim.renderer.extrusion.ExtrusionRenderer;
 import org.oscim.renderer.GLViewport;
 import org.oscim.scalebar.*;
 import org.oscim.theme.VtmThemes;

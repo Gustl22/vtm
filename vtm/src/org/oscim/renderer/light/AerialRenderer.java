@@ -42,16 +42,16 @@ public class AerialRenderer extends LayerRenderer {
     private GroundShader mGroundShader;
 
     public static class GroundShader extends BasicShader {
-        Fog.ShaderLocations sFog = new Fog.ShaderLocations();
+        FogShaderLocations sFog = new FogShaderLocations();
 
         public GroundShader(String shader) {
-            createDirective(shader, "#define FOG 1\n");
+            createDirective(shader, sFog.getDirective());
         }
 
         @Override
         public void init() {
             super.init();
-            sFog.initLocations(this);
+            sFog.init(this);
         }
     }
 

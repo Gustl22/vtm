@@ -18,6 +18,8 @@ package org.oscim.layers;
 
 import org.oscim.layers.tile.buildings.BuildingLayer;
 import org.oscim.map.Map;
+import org.oscim.renderer.extrusion.ExtrusionLayerRenderer;
+import org.oscim.renderer.extrusion.ExtrusionRenderer;
 import org.oscim.renderer.light.AerialExtrusionRenderer;
 import org.oscim.renderer.light.AerialRenderer;
 import org.oscim.renderer.light.Fog;
@@ -38,8 +40,20 @@ public class AerialLayer extends Layer {
 
     public AerialLayer(Map map, BuildingLayer buildingLayer, Fog fog) {
         super(map);
-        if (buildingLayer != null)
-            buildingLayer.setRenderer(new AerialExtrusionRenderer(buildingLayer.getExtrusionRenderer(), fog));
+        if (buildingLayer != null) {
+            // Include aerial renderer to BuildingLayer, too
+            ExtrusionLayerRenderer prev = null;
+            ExtrusionLayerRenderer renderer = buildingLayer.getRenderer();
+            while (!(renderer instanceof ExtrusionRenderer)) {
+                prev = renderer;
+                renderer = renderer.getRenderer();
+            }
+            AerialExtrusionRenderer aerialExtrusionRenderer = new AerialExtrusionRenderer(renderer, fog);
+            if (prev == null)
+                buildingLayer.setRenderer(aerialExtrusionRenderer);
+            else
+                prev.setRenderer(aerialExtrusionRenderer);
+        }
         mRenderer = new AerialRenderer(fog);
     }
 }

@@ -15,57 +15,28 @@
 package org.oscim.renderer.light;
 
 import org.oscim.backend.GL;
-import org.oscim.renderer.ExtrusionLayerRenderer;
-import org.oscim.renderer.ExtrusionRenderer;
+import org.oscim.renderer.extrusion.ExtrusionLayerRenderer;
 import org.oscim.renderer.GLState;
 import org.oscim.renderer.GLUtils;
 import org.oscim.renderer.GLViewport;
+import org.oscim.renderer.extrusion.ExtrusionShader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.oscim.backend.GLAdapter.gl;
 
-public class AerialExtrusionRenderer extends ExtrusionLayerRenderer {
+public class AerialExtrusionRenderer extends ExtrusionLayerRenderer<FogShaderLocations> {
     private static final Logger log = LoggerFactory.getLogger(AerialExtrusionRenderer.class);
 
     public static boolean DEBUG = false;
 
-    /**
-     * Shader to draw the extrusions.
-     */
-    private Shader mExtrusionShader;
-
     private Fog mFog;
-
-    public static class Shader extends ExtrusionRenderer.Shader {
-        Fog.ShaderLocations fogLocations = new Fog.ShaderLocations();
-
-        public Shader(String shader) {
-            super(shader, "#define FOG 1\n");
-        }
-
-        @Override
-        public void init() {
-            super.init();
-            fogLocations.initLocations(this);
-        }
-    }
 
     public AerialExtrusionRenderer(ExtrusionLayerRenderer renderer, Fog fog) {
         super(renderer);
         mFog = fog;
-    }
-
-    @Override
-    public boolean setup() {
-        if (isMesh())
-            mExtrusionShader = new Shader("extrusion_layer_mesh");
-        else
-            mExtrusionShader = new Shader("extrusion_layer_ext");
-
-        //mRenderer.setup(); // No need to setup, as shaders are taken from here
-
-        return super.setup();
+        ExtrusionShader extrusionShader = getMainShader().setFog(true);
+        setShaderLocations(extrusionShader.getFogShaderLocations());
     }
 
     @Override
@@ -77,24 +48,25 @@ public class AerialExtrusionRenderer extends ExtrusionLayerRenderer {
     @Override
     public void render(GLViewport viewport) {
 
-        // DRAW SCENE
-        GLState.test(false, false);
+        if (isLight()) {
+            // DRAW SCENE
+            GLState.test(false, false);
 //        gl.depthFunc(GL.ALWAYS);
-        gl.clear(GL.DEPTH_BUFFER_BIT);
+            gl.clear(GL.DEPTH_BUFFER_BIT);
 
-        // Draw EXTRUSIONS (in ExtrusionRenderer)
-        {
-            mExtrusionShader.useProgram();
+            // Draw EXTRUSIONS (in ExtrusionRenderer)
+            {
+                useMainShader();
 
-            GLUtils.setColor(mExtrusionShader.fogLocations.uColor, mFog.getColor());
-            gl.uniform1f(mExtrusionShader.fogLocations.uDensity, mFog.getDensity());
-            gl.uniform1f(mExtrusionShader.fogLocations.uGradient, mFog.getGradient());
-            gl.uniform1f(mExtrusionShader.fogLocations.uShift, mFog.getShift());
+                GLUtils.setColor(getShaderLocations().uColor, mFog.getColor());
+                gl.uniform1f(getShaderLocations().uDensity, mFog.getDensity());
+                gl.uniform1f(getShaderLocations().uGradient, mFog.getGradient());
+                gl.uniform1f(getShaderLocations().uShift, mFog.getShift());
 
-            mRenderer.setShader(mExtrusionShader);
-            mRenderer.useLight(true);
+                mRenderer.render(viewport);
+                //mRenderer.setShader(tmpShader);
+            }
+        } else
             mRenderer.render(viewport);
-            //mRenderer.setShader(tmpShader);
-        }
     }
 }
