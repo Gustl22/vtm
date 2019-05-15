@@ -26,7 +26,6 @@ import org.oscim.layers.AerialLayer;
 import org.oscim.layers.tile.buildings.BuildingLayer;
 import org.oscim.layers.tile.buildings.S3DBLayer;
 import org.oscim.layers.tile.vector.VectorTileLayer;
-import org.oscim.layers.tile.vector.labeling.LabelLayer;
 import org.oscim.map.Map;
 import org.oscim.renderer.BitmapRenderer;
 import org.oscim.renderer.extrusion.ExtrusionRenderer;
@@ -75,7 +74,7 @@ public class MapsforgeTest extends GdxMapApp {
         if (poi3d)
             mMap.layers().add(new Poi3DLayer(mMap, l));
 
-        mMap.layers().add(new LabelLayer(mMap, l));
+//        mMap.layers().add(new LabelLayer(mMap, l));
 
         DefaultMapScaleBar mapScaleBar = new DefaultMapScaleBar(mMap);
         mapScaleBar.setScaleBarMode(DefaultMapScaleBar.ScaleBarMode.BOTH);
@@ -97,7 +96,7 @@ public class MapsforgeTest extends GdxMapApp {
         }
         mMap.setMapPosition(pos);
 
-        if (false) {
+        if (SHADOWS) {
             final ExtrusionRenderer extrusionRenderer = buildingLayer.getExtrusionRenderer();
             mMap.events.bind(new Map.UpdateListener() {
                 Calendar date = Calendar.getInstance();

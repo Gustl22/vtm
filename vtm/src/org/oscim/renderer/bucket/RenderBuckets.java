@@ -56,6 +56,7 @@ public class RenderBuckets extends TileData {
 
     public static final int SHORT_BYTES = 2;
     // public static final int INT_BYTES = 4;
+    public static final int FLOAT_BYTES = 4;
 
     /**
      * Number of vertices to fill a tile (represented by a quad).
