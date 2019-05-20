@@ -20,8 +20,13 @@ sourceSets {
 dependencies {
     api project(':vtm-gdx')
     api "com.badlogicgames.gdx:gdx:$gdxVersion:sources"
-    api "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion"
-    api "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion:sources"
+    api ("com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion") {
+        exclude group: 'com.google.gwt', module: 'gwt-user'
+    }
+    api ("com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion:sources") {
+        exclude group: 'com.google.gwt', module: 'gwt-user'
+    }
+    api "com.google.gwt:gwt-user:$gwtVersion"
 }
 
 // explicit dependencies for org.gradle.configureondemand=true
